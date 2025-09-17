@@ -1,0 +1,22 @@
+<div class="card">
+  <div class="header">
+    <h3 class="title">{{ titulo }}</h3>
+  </div>
+
+  <ul class="list" role="list">
+    <li *ngFor="let it of items; trackBy: trackByIdx"
+        [class.alt]="(items.indexOf(it) % 2) === 1"
+        [class.destacado]="it.destacado">
+      <span class="texto">{{ it.texto }}</span>
+      <span class="fecha" *ngIf="it.fecha">{{ it.fecha }}</span>
+    </li>
+
+    <li class="empty" *ngIf="!items?.length">
+      No hay actividades recientes.
+    </li>
+  </ul>
+
+  <div class="footer" *ngIf="showVerMas">
+    <button type="button" class="btn" (click)="verMas.emit()">Ver más…</button>
+  </div>
+</div>

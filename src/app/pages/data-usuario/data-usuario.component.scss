@@ -1,0 +1,28 @@
+.form {
+  position: relative;
+}
+
+.form .fa-search {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #9ca3af;
+}
+
+.form-input {
+  height: 55px;
+  text-indent: 33px;
+  border-radius: 10px;
+}
+
+.form-input:focus {
+  background-color: rgb(236, 235, 235);
+  border: none;
+}
+
+
+    .fa-edit {
+      color: rgb(37, 117, 246);
+      font-size: 22px;
+    }
+

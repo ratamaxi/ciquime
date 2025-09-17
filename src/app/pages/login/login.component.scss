@@ -1,0 +1,144 @@
+$themecolor: #59a6d3;
+
+.login-register {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 100%;
+  width: 100%;
+  padding: 10% 0;
+  position: fixed;
+}
+
+.form-control{
+  height: 50px;
+}
+
+.tamanoLogo {
+  width: 200px;
+  padding-bottom: 10px;
+  color: $themecolor;
+}
+
+.grey {
+  color: grey;
+}
+
+.boton-recordar {
+  color: $themecolor;
+}
+
+.padding-recordar {
+  padding-left: 10px;
+}
+
+.btn-primary {
+  background-color: $themecolor;
+  border-color: $themecolor;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: $themecolor;
+}
+
+.checkbox {
+  padding-left: 10px;
+}
+
+.login-box {
+  margin: 0 auto;
+  width: 30%;
+  min-width: 400px;
+  left: 0px;
+  right: 0px;
+  display: block;
+  margin-bottom: 30px;
+  position: absolute;
+  height: auto;
+  top: 15%;
+  border-radius: 25px;
+  box-shadow: 0px 0px 13px 1px rgba(0, 0, 0, 0.35);
+}
+
+.login-sidebar {
+  margin-top: 0px;
+  padding: 0px;
+  right: 0px;
+  height: 100%;
+}
+
+.boxRedBotton {
+  background-color: $themecolor;
+  position: absolute;
+  bottom: 0;
+  height: 40%;
+  width: 100%;
+  z-index: -1;
+  box-shadow: inset 0 74px 55px 7px rgba(0, 0, 0, .4);
+  overflow: hidden;
+}
+
+.circles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.circles li {
+  --size: 48px;
+  --dur: 22s;
+  --delay: 0s;
+  list-style: none;
+  position: absolute;
+  bottom: -120px;
+  left: 50%;
+  width: var(--size);
+  height: calc(var(--size) * .75);
+  background: rgba(255,255,255,.2);
+  border-radius: 42% 58% 63% 37% / 45% 32% 68% 55%;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.03) inset, 0 4px 20px rgba(0,0,0,.06);
+  will-change: transform, opacity, border-radius;
+  animation:
+    floatUp var(--dur) linear var(--delay) infinite,
+    blobMorph calc(var(--dur) / 3) ease-in-out var(--delay) infinite alternate;
+}
+
+.circles li:nth-child(1)  { left: 12%; --size: 22px;  --dur: 18s; --delay: 0s; }
+.circles li:nth-child(2)  { left: 25%; --size: 90px;  --dur: 28s; --delay: 2s; }
+.circles li:nth-child(3)  { left: 38%; --size: 36px;  --dur: 20s; --delay: 4s; }
+.circles li:nth-child(4)  { left: 50%; --size: 140px; --dur: 34s; --delay: 1s; }
+.circles li:nth-child(5)  { left: 63%; --size: 28px;  --dur: 16s; --delay: 0s; }
+.circles li:nth-child(6)  { left: 72%; --size: 120px; --dur: 36s; --delay: 3s; }
+.circles li:nth-child(7)  { left: 81%; --size: 60px;  --dur: 24s; --delay: 5s; }
+.circles li:nth-child(8)  { left: 18%; --size: 26px;  --dur: 21s; --delay: 7s; }
+.circles li:nth-child(9)  { left: 44%; --size: 48px;  --dur: 26s; --delay: 2s; }
+.circles li:nth-child(10) { left: 88%; --size: 160px; --dur: 40s; --delay: 0s; }
+
+@keyframes floatUp {
+  0%   { transform: translate(-10px, 0);       opacity: .45; }
+  25%  { transform: translate( 12px, -25vh);   opacity: .60; }
+  50%  { transform: translate(-14px, -50vh);   opacity: .52; }
+  75%  { transform: translate( 10px, -75vh);   opacity: .58; }
+  100% { transform: translate( -8px, -100vh);  opacity: 0;   }
+}
+
+@keyframes blobMorph {
+  0% {
+    border-radius: 42% 58% 63% 37% / 45% 32% 68% 55%;
+  }
+  50% {
+    border-radius: 55% 45% 38% 62% / 40% 60% 35% 65%;
+  }
+  100% {
+    border-radius: 48% 52% 60% 40% / 58% 38% 62% 42%;
+  }
+}
+
+/* Accesibilidad: reduce animaciones si el usuario lo pidió */
+@media (prefers-reduced-motion: reduce) {
+  .circles li { animation: none; opacity: .35; }
+}

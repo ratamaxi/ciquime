@@ -1,0 +1,179 @@
+<!-- Encabezado -->
+ <div class="container pt-5">
+<div class="page-header">
+  <div class="title-wrap">
+    <span class="title-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path
+              d="M3 17.25V21h3.75L17.81 9.94 14.06 6.19 3 17.25ZM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
+      </svg>
+    </span>
+    <h1 class="page-title">Editar Registro</h1>
+  </div>
+</div>
+
+<!-- Card del formulario -->
+<form class="form-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <!-- fila: nombre original / fabricante (solo lectura) -->
+  <div class="grid two">
+    <div class="field">
+      <label>Nombre Original</label>
+      <input class="control" type="text" formControlName="nombreOriginal" readonly>
+    </div>
+    <div class="field">
+      <label>Fabricante</label>
+      <input class="control" type="text" formControlName="fabricante" readonly>
+    </div>
+  </div>
+
+  <!-- línea de personalización -->
+  <div class="hint-row">
+    <span class="hint-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path
+              d="M3 17.25V21h3.75L17.81 9.94 14.06 6.19 3 17.25ZM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
+      </svg>
+    </span>
+    <span>Personalización | Aquí podrá completar con el Nombre o Código interno del insumo</span>
+  </div>
+
+  <!-- fila: nombre interno -->
+  <div class="grid one">
+    <div class="field">
+      <label>Nombre interno</label>
+      <input class="control" type="text" formControlName="nombreInterno" placeholder="Escriba el nombre/código interno">
+      <div class="hint error" *ngIf="f['nombreInterno'].touched && f['nombreInterno'].invalid">
+        Ingresá un nombre interno válido.
+      </div>
+    </div>
+  </div>
+
+  <!-- fila: sector / rnpq / lote -->
+  <div class="grid three">
+    <div class="field">
+      <label>Sector</label>
+      <select class="control" formControlName="sector">
+        <option value="">Seleccioná…</option>
+        <option *ngFor="let s of sectores" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>RNPQ</label>
+      <div class="segmented">
+        <button type="button" [class.active]="form.value.rnpq===false" (click)="setRNPQ(false)">NO</button>
+        <button type="button" [class.active]="form.value.rnpq===true" (click)="setRNPQ(true)">SÍ</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Lote</label>
+      <input class="control" type="text" formControlName="lote" placeholder="Lote">
+    </div>
+  </div>
+
+  <!-- fila: presentación / valoración API -->
+  <div class="grid two">
+    <div class="field">
+      <label>Presentación del producto</label>
+      <input class="control" type="text" formControlName="presentacion">
+    </div>
+
+    <div class="field">
+      <label>Valoración API</label>
+      <select class="control" formControlName="valoracionApi">
+        <option value="">NA</option>
+        <option *ngFor="let v of valoracionesApi" [value]="v">{{ v }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- notas de usuario -->
+  <div class="grid one">
+    <div class="field">
+      <label>Notas del Usuario</label>
+      <textarea class="control" rows="3" formControlName="notasUsuario" placeholder="Notas / observaciones…"></textarea>
+    </div>
+  </div>
+
+  <!-- sección aprobación -->
+  <div class="section-approval">
+    <div class="section-title">
+      <span class="check-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41Z"/></svg>
+      </span>
+      <span>Aprobación | Indicar si el insumo a cumplimiento todos los requisitos de aprobación</span>
+    </div>
+
+    <div class="grid three middle">
+      <div class="field">
+        <label class="sr-only">Hoja SGA</label>
+        <button type="button" class="btn-flat" (click)="abrirHojaSGA()">
+          Hoja de Clasificación SGA
+        </button>
+      </div>
+
+      <div class="field ipel-field">
+        <label>iPel</label>
+        <div class="ipel">
+          <button type="button"
+                  *ngFor="let n of [1,2,3,4,5]"
+                  class="dot"
+                  [class.active]="form.value.ipel >= n"
+                  (click)="setIPel(n)">
+            <span *ngIf="n===1">{{ form.value.ipel }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="sr-only">Consejo</label>
+        <button type="button" class="btn-flat" (click)="abrirConsejo()">
+          Consejo de Aprobación
+        </button>
+      </div>
+    </div>
+
+    <div class="grid two">
+      <div class="field">
+        <label>Código de aprobación</label>
+        <input class="control" type="text" formControlName="codigoAprobacion">
+      </div>
+      <div class="field">
+        <label>Código consejo de aprobación</label>
+        <input class="control" type="text" formControlName="codigoConsejo">
+      </div>
+    </div>
+
+    <div class="grid one">
+      <div class="field">
+        <label>Notas del Administrador</label>
+        <textarea class="control" rows="3" formControlName="notasAdmin" placeholder="Notas internas…"></textarea>
+      </div>
+    </div>
+
+    <div class="grid one">
+      <div class="field">
+        <label>Estado del insumo</label>
+        <div class="radio-line">
+          <label><input type="radio" formControlName="estado" value="aprobado"> Aprobado</label>
+          <label><input type="radio" formControlName="estado" value="pendiente"> Pendiente</label>
+          <label><input type="radio" formControlName="estado" value="rechazado"> Rechazado</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- acciones -->
+  <div class="actions">
+    <button type="button" class="btn-light" (click)="onCancel()">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      Cancelar
+    </button>
+
+    <button type="submit" class="btn-primary" [disabled]="form.invalid || saving">
+      <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4Z"/></svg>
+      Grabar y guardar
+    </button>
+  </div>
+</form>
+ </div>
+

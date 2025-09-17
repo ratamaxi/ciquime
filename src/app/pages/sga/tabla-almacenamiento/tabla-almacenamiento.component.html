@@ -1,0 +1,50 @@
+<div class="ficha-card">
+  <div class="ficha-table">
+    <!-- Encabezado -->
+    <div class="row">
+      <div class="cell label">
+        Nombre del producto: <b>{{ ficha.productName }}</b>
+      </div>
+      <div class="cell value right">
+        <b>Proveedor:</b> {{ ficha.supplier }}
+      </div>
+    </div>
+
+    <!-- Separador suave -->
+    <div class="row alt">
+      <div class="cell label"></div>
+      <div class="cell value"></div>
+    </div>
+
+    <!-- Filas de almacenamiento -->
+    <div class="row zebra">
+      <div class="cell label">Tipo de Producto:</div>
+      <div class="cell value">{{ ficha.tipoProducto }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Características del<br>Depósito:</div>
+      <div class="cell value">{{ ficha.caracteristicasDeposito }}</div>
+    </div>
+
+    <div class="row zebra">
+      <div class="cell label">Condiciones de<br>Operación:</div>
+      <div class="cell value">{{ ficha.condicionesOperacion }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Disposiciones<br>Particulares:</div>
+      <div class="cell value">{{ ficha.disposicionesParticulares }}</div>
+    </div>
+
+    <div class="row zebra">
+      <div class="cell label">Disposiciones de<br>Almacenamiento:</div>
+      <div class="cell value">{{ ficha.disposicionesAlmacenamiento }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Incompatible con:</div>
+      <div class="cell value">{{ ficha.incompatibleCon }}</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="container pt-5">
+  <div class="row">
+    <div class="col">
+      <h5 class="label">Nombre Interno:</h5>
+
+      <div class="tabs">
+        <button
+          *ngFor="let t of tabs"
+          class="tab-btn"
+          [class.active]="active === t.key"
+          (click)="active = t.key">
+          {{ t.label }}
+        </button>
+      </div>
+
+      <ng-container [ngSwitch]="active">
+        <!-- Peligros por SGA -->
+        <app-tabla-peligro *ngSwitchCase="'peligro'"></app-tabla-peligro>
+
+        <!-- EPP y Composición -->
+        <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp"></app-tabla-epp>
+        <app-tabla-nfpa *ngSwitchCase="'nfpa'"></app-tabla-nfpa>
+        <app-tabla-tratamiento *ngSwitchCase="'trat'"></app-tabla-tratamiento>
+        <app-tabla-emergencia *ngSwitchCase="'emerg'"></app-tabla-emergencia>
+        <app-tabla-almacenamiento *ngSwitchCase="'alm'"></app-tabla-almacenamiento>
+
+
+        <!-- Resto de pestañas (placeholder) -->
+        <div class="card note" *ngSwitchDefault>
+          <p>Contenido pendiente para esta pestaña.</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

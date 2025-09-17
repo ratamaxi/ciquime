@@ -1,0 +1,26 @@
+<div class="home-flex pt-5">
+      <h2>Bienvenido</h2>
+</div>
+<div class="home-flex pt-2">
+  <div class="rail-left">
+    <div class="fadeInLeft">
+      <app-status-card></app-status-card>
+    </div>
+    <div class="pt-3 fadeInUp">
+      <app-tabla-home></app-tabla-home>
+    </div>
+  </div>
+
+  <div class="rail-right fadeInRight">
+    <app-estadisticas
+      class="mb-3"
+      [data]="{ aprobados: 90, pendientes: 3, rechazados: 1 }"
+      [mostrarBarras]="['aprobados','pendientes']">
+    </app-estadisticas>
+
+    <app-actividades-item
+      [items]="misActividades"
+      [showVerMas]="false">
+    </app-actividades-item>
+  </div>
+</div>

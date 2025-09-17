@@ -1,0 +1,54 @@
+<div class="card">
+  <h3 class="title">{{ titulo }}</h3>
+
+  <!-- Fila: Aprobados -->
+  <div class="row">
+    <div class="left">
+      <span class="count">{{ data.aprobados || 0 }}</span>
+      <span class="label">Aprobados</span>
+    </div>
+    <div class="right" *ngIf="tieneBarra('aprobados')">
+      <div class="bar track">
+        <div class="bar fill ok" [style.width.%]="pct('aprobados')"></div>
+      </div>
+      <span class="pct">{{ pct('aprobados') }}<span aria-hidden="true"> %</span><span class="sr-only"> por ciento</span></span>
+    </div>
+    <div class="right right--noBar" *ngIf="!tieneBarra('aprobados')">
+      <span class="pct">{{ pct('aprobados') }} %</span>
+    </div>
+  </div>
+
+  <!-- Fila: Pendientes -->
+  <div class="row">
+    <div class="left">
+      <span class="count">{{ data.pendientes || 0 }}</span>
+      <span class="label">Pendientes</span>
+    </div>
+    <div class="right" *ngIf="tieneBarra('pendientes')">
+      <div class="bar track">
+        <div class="bar fill warn" [style.width.%]="pct('pendientes')"></div>
+      </div>
+      <span class="pct">{{ pct('pendientes') }} %</span>
+    </div>
+    <div class="right right--noBar" *ngIf="!tieneBarra('pendientes')">
+      <span class="pct">{{ pct('pendientes') }} %</span>
+    </div>
+  </div>
+
+  <!-- Fila: Rechazados -->
+  <div class="row">
+    <div class="left">
+      <span class="count">{{ data.rechazados || 0 }}</span>
+      <span class="label">Rechazados</span>
+    </div>
+    <div class="right" *ngIf="tieneBarra('rechazados')">
+      <div class="bar track">
+        <div class="bar fill error" [style.width.%]="pct('rechazados')"></div>
+      </div>
+      <span class="pct">{{ pct('rechazados') }} %</span>
+    </div>
+    <div class="right right--noBar" *ngIf="!tieneBarra('rechazados')">
+      <span class="pct">{{ pct('rechazados') }}</span>
+    </div>
+  </div>
+</div>

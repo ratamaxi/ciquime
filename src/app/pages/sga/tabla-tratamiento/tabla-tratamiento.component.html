@@ -1,0 +1,63 @@
+<div class="ficha-card">
+  <div class="ficha-table">
+    <!-- Encabezado: producto / proveedor -->
+    <div class="row">
+      <div class="cell label">
+        Nombre del producto: <b>{{ ficha.productName }}</b>
+      </div>
+      <div class="cell value right">
+        <b>Proveedor:</b> {{ ficha.supplier }}
+      </div>
+    </div>
+
+    <!-- Separador visual leve -->
+    <div class="row alt">
+      <div class="cell label"></div>
+      <div class="cell value"></div>
+    </div>
+
+    <!-- Título de sección + cruz médica -->
+    <div class="row section">
+      <div class="cell section-title">TRATAMIENTOS MEDICOS</div>
+      <div class="cell section-icon right">
+        <span class="med-cross" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" fill="#fff" stroke="#12b886" stroke-width="8"/>
+            <path d="M44 24h12v20h20v12H56v20H44V56H24V44h20z" fill="#12b886"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- Filas de tratamiento -->
+    <div class="row zebra">
+      <div class="cell label">Medidas<br/>Generales:</div>
+      <div class="cell value">{{ ficha.medidasGenerales }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Contacto con<br/>los Ojos:</div>
+      <div class="cell value">{{ ficha.ojos }}</div>
+    </div>
+
+    <div class="row zebra">
+      <div class="cell label">Contacto con<br/>la Piel:</div>
+      <div class="cell value">{{ ficha.piel }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Inhalación:</div>
+      <div class="cell value">{{ ficha.inhalacion }}</div>
+    </div>
+
+    <div class="row zebra">
+      <div class="cell label">Ingestión:</div>
+      <div class="cell value">{{ ficha.ingestion }}</div>
+    </div>
+
+    <div class="row zebra alt">
+      <div class="cell label">Nota al<br/>Médico:</div>
+      <div class="cell value">{{ ficha.notaMedico }}</div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+:host {
+  --text:  #2c2c2c;
+  --muted: #6b6b6b;
+  --row:   #eeeeee;
+  --row-alt: #f2f2f2;
+  --card-bg: #fff;
+  --shadow: 0 12px 24px rgba(0,0,0,.08);
+  display: block;
+}
+
+/* Card contenedora */
+.ficha-card {
+  background: var(--card-bg);
+  border-radius: 0 18px 18px 18px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+/* Grid dos columnas: etiqueta + valor */
+.ficha-table {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row {
+  display: contents; /* permite que .cell ocupe la grid */
+}
+.row:not(:first-child) .cell { border-top: 1px solid #e6e6e6; }
+.row.alt .cell.value { background: #f6f6f6; } /* alterna como en tu mock */
+
+.cell {
+  padding: 12px 14px;
+  color: var(--text);
+}
+.cell.label {
+  background: #e9e9e9;
+  font-weight: 700;
+  color: #1f2937;
+}
+.cell.value {
+  background: #fff;
+}
+
+/* Split derecha (visibilidad / fuente / imprimir) */
+.split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.source { color: #1f2937; font-weight: 700; }
+.icon-btn {
+  border: 0;
+  background: #ecf0f3;
+  width: 36px; height: 36px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: filter .18s ease, transform .02s ease;
+  svg { width: 20px; height: 20px; fill: #374151; }
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: translateY(1px); }
+}
+
+/* Pictogramas GHS */
+.pictos { display: flex; gap: 18px; flex-wrap: wrap; }
+.ghs { position: relative; width: 82px; height: 82px; display: inline-block; }
+.rombo { position: absolute; inset: 0; }
+.icon {
+  position: absolute; inset: 0;
+  width: 60%; height: 60%;
+  margin: auto; fill: #111;
+  top: 15px;
+  right: -15px;
+}
+
+/* Listas en la derecha (H y P) */
+.list {
+  list-style: none;
+  padding: 0; margin: 0;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.list > li {
+  padding: 10px 12px;
+  background: #fff;
+  color: #111827;
+}
+.list > li.strip { background: #f6f2f4; }
+
+/* Responsive: 1 columna en pantallas chicas */
+@media (max-width: 720px) {
+  .ficha-table { grid-template-columns: 1fr; }
+  .cell.label { border-bottom: 1px solid #e6e6e6; }
+  .split { justify-content: flex-start; }
+}

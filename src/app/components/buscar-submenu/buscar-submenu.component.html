@@ -1,0 +1,17 @@
+<nav class="subnav" aria-label="Submenú de búsqueda">
+  <div class="subnav-inner">
+       <a
+        *ngFor="let it of items"
+        class="pill"
+        [routerLink]="it.link"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        #rla="routerLinkActive"
+      >
+      <span class="ico" aria-hidden="true">
+         <img class="ico-img" class="icon-width" [src]="iconFor(it, rla.isActive)" [alt]="it.label" />
+      </span>
+      <span class="txt">{{ it.label }}</span>
+    </a>
+  </div>
+</nav>

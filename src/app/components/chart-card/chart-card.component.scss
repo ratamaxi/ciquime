@@ -1,0 +1,49 @@
+.card {
+  border-radius: 14px;
+  background: #fff;
+  padding: 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  min-width: 400px;
+
+  .card-header {
+    padding: 14px 18px;
+    font-weight: 800;
+    font-size: 16px;
+    background: #f6f7f9;
+    border-bottom: 1px solid #eee;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+
+  .card-body {
+    display: grid;
+    grid-template-columns: 1fr auto; /* chart + leyenda */
+    gap: 24px;
+    align-items: center;
+    padding: 20px;
+  }
+}
+
+
+
+.legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-weight: 600;
+    color: #444;
+
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  }
+}

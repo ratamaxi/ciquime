@@ -1,0 +1,11 @@
+<div id="main-wrapper" class="seccion">
+  <app-internal-header></app-internal-header>
+  <div class="col d-flex justify-content-center fadeInDown" *ngIf="!router.isActive('/panel/home', {
+      paths: 'exact',
+      queryParams: 'ignored',
+      fragment: 'ignored',
+      matrixParams: 'ignored'
+    })"> <app-buscar-submenu></app-buscar-submenu>
+  </div>
+  <router-outlet></router-outlet>
+</div>

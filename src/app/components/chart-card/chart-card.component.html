@@ -1,0 +1,14 @@
+<div class="card">
+  <div class="card-header">{{ title }}</div>
+
+  <div class="card-body">
+    <div class="chart-wrap" [style.--maxWidth.px]="maxCanvasWidth">
+      <canvas
+        baseChart
+        [type]="'doughnut'"
+        [data]="doughnutData"
+        [options]="doughnutOptions">
+      </canvas>
+    </div>
+  </div>
+</div>

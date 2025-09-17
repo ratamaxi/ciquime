@@ -1,0 +1,146 @@
+<div class="container pt-5">
+  <div class="row">
+
+    <div class="page-header">
+      <div class="title-wrap">
+        <span class="title-icon" aria-hidden="true">
+          <!-- ícono lápiz (mismo que veníamos usando) -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M3 17.25V21h3.75L17.81 9.94 14.06 6.19 3 17.25ZM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
+          </svg>
+
+        </span>
+        <h3 class="page-title">Registro/Actualización de Insumo</h3>
+      </div>
+
+      <button type="button" class="btn-back" routerLink="/panel/home">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2Z" />
+        </svg>
+        <span>Volver</span>
+      </button>
+    </div>
+
+
+
+
+    <div class="form-card fadeInUp">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <!-- NOMBRE -->
+        <div class="row">
+          <label class="label" for="nombre">Nombre:</label>
+          <div class="field">
+            <input id="nombre" type="text" class="input" formControlName="nombre"
+              placeholder="Escribe el nombre del insumo" />
+            <div class="hint error" *ngIf="f['nombre'].touched && f['nombre'].invalid">
+              El nombre es obligatorio (mín. 2 caracteres).
+            </div>
+          </div>
+        </div>
+
+        <!-- FABRICANTE -->
+        <div class="row">
+          <label class="label" for="fabricante">Fabricante:</label>
+          <div class="field">
+            <select id="fabricante" class="input" formControlName="fabricante">
+              <option value="" disabled>Seleccioná un fabricante…</option>
+              <option *ngFor="let fab of fabricantes" [value]="fab">{{ fab }}</option>
+            </select>
+            <div class="hint error" *ngIf="f['nombre'].touched && f['nombre'].invalid">
+              Seleccioná un fabricante.
+            </div>
+          </div>
+        </div>
+
+        <!-- REV + FECHA (combinado) -->
+        <div class="row">
+          <label class="label pt-5" for="revisionFds">Revisión FDS:</label>
+          <div class="field">
+            <div class="inline-2 align-items-end">
+              <input id="revisionFds" type="text" class="input" formControlName="revisionFds"
+                placeholder="p. ej. R03" />
+              <div class="inline-col">
+                <label class="sub-label" for="fechaFds">Fecha FDS:</label>
+                <input id="fechaFds" type="date" class="input" formControlName="fechaFds" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ARCHIVO -->
+        <div class="row">
+          <label class="label">Adjuntar FDS:</label>
+          <div class="field">
+            <div class="file-line">
+              <label class="btn btn-outline">
+                <input type="file" accept="application/pdf" (change)="onFileChange($event)" hidden />
+                Seleccionar archivo
+              </label>
+              <span class="file-name">{{ nombreArchivo || 'Ningún archivo seleccionado' }}</span>
+            </div>
+            <div class="hint">Formato aceptado: PDF (opcional si no corresponde).</div>
+          </div>
+        </div>
+
+        <!-- TIPO REGISTRO -->
+        <div class="row">
+          <label class="label">Tipo de Registro:</label>
+          <div class="field">
+            <div class="radio-line">
+              <label class="radio">
+                <input type="radio" formControlName="tipoRegistro" value="nuevo" />
+                <span>Nuevo Registro</span>
+              </label>
+              <label class="radio">
+                <input type="radio" formControlName="tipoRegistro" value="actualizacion" />
+                <span>Actualización (Incluir FDS)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISUALIZACIÓN -->
+        <div class="row">
+          <label class="label">Visualización:</label>
+          <div class="field">
+            <div class="radio-line">
+              <label class="radio">
+                <input type="radio" formControlName="visualizacion" value="privado" />
+                <span>Privado</span>
+              </label>
+              <label class="radio">
+                <input type="radio" formControlName="visualizacion" value="publico" />
+                <span>Publico</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCIONES -->
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" (click)="onCancel()">
+            <span class="btn-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+          10-4.48 10-10S17.52 2 12 2Zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59
+          10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59Z" />
+              </svg>
+            </span>
+            Cancelar
+          </button>
+
+          <button class="btn btn-primary" type="submit" [disabled]="invalid">
+            <span class="btn-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 16.17 4.83 12 3.41 13.41 9 19l12-12L19.59 5 9 15.59z" />
+              </svg>
+            </span>
+            Grabar y guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

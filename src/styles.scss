@@ -1,1 +1,137 @@
 /* You can add global styles to this file, and also import other style files */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: #f2f2f2; // gris claro
+}
+
+.pointer{
+  cursor: pointer;
+}
+
+.color-principal{
+  color: #0d6efd;
+}
+
+.tada {
+  animation-name: tada;
+  animation-duration: 3s;
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+}
+
+@keyframes tada {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  5%,
+  10% {
+    transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg);
+  }
+  15%,
+  25%,
+  35%,
+  45% {
+    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
+  }
+  20%,
+  30%,
+  40% {
+    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
+  }
+  50%,
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.fadeIn {
+  animation-name: fadeIn;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  }
+
+  @keyframes fadeIn {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+  }
+
+  .fadeInRight {
+  animation-name: fadeInRight;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  }
+
+  @keyframes fadeInRight {
+  0% {
+  opacity: 0;
+  transform: translate3d(100%, 0, 0);
+  }
+  100% {
+  opacity: 1;
+  transform: none;
+  }
+  }
+
+   .fadeInUp {
+  animation-name: fadeInUp;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  }
+
+  @keyframes fadeInUp {
+  0% {
+  opacity: 0;
+  transform: translate3d(0, 100%, 0);
+  }
+  100% {
+  opacity: 1;
+  transform: none;
+  }
+  }
+
+  .fadeInLeft {
+  animation-name: fadeInLeft;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  }
+
+  @keyframes fadeInLeft {
+  0% {
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+  opacity: 1;
+  transform: none;
+  }
+  }
+
+  .fadeInDown {
+  animation-name: fadeInDown;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  }
+  @-webkit-keyframes fadeInDown {
+  0% {
+  opacity: 0;
+  transform: translate3d(0, -100%, 0);
+  }
+  100% {
+  opacity: 1;
+  transform: none;
+  }
+  }
+  @keyframes fadeInDown {
+  0% {
+  opacity: 0;
+  transform: translate3d(0, -100%, 0);
+  }
+  100% {
+  opacity: 1;
+  transform: none;
+  }
+  }

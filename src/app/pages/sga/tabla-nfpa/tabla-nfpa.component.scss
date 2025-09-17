@@ -1,0 +1,153 @@
+:host {
+  --text:  #1f2937;
+  --muted: #6b7280;
+  --card-bg: #fff;
+  --shadow: 0 12px 24px rgba(0,0,0,.08);
+
+  --nfpa-blue:  #113f8c;
+  --nfpa-red:   #c62828;
+  --nfpa-yellow:#f1c40f;
+  --nfpa-gray:  #d9d9d9;
+
+  --orange: #f07c3c;
+  display: block;
+}
+
+/* Card */
+.ficha-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+/* Tabla base (dos columnas) */
+.ficha-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* encabezado con dos celdas: izq y der */
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row { display: contents; }
+.cell {
+  padding: 12px 14px; color: var(--text);
+  border-top: 1px solid #e6e6e6;
+}
+.row:first-child .cell { border-top: 0; }
+
+.cell.label { background: #f3f4f6; font-weight: 800; }
+.cell.value { background: #fff; }
+.cell.right { text-align: right; }
+.row.alt .cell.value { background: #f9fafb; }
+
+.muted { color: var(--muted); font-weight: 700; }
+
+/* Línea de transporte (CLASE + FET) */
+.transport-line {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  .class-box { display: inline-flex; align-items: center; gap: 10px; }
+}
+
+/* Rombo / llama / número */
+.diamond { position: relative; width: 82px; height: 82px; display: inline-block; }
+.rombo { position: absolute; inset: 0; }
+.flame {
+  position: absolute; inset: 0;
+  width: 44%; height: 44%;
+  margin: auto; fill: #c0392b;
+}
+.num {
+  position: absolute; left: 0; right: 0; bottom: 6px;
+  text-align: center; font-weight: 900; font-size: 18px; color: #111;
+}
+
+.icon {
+  position: absolute; inset: 0;
+  width: 60%; height: 60%;
+  margin: auto; fill: #c0392b;
+  right: -15px;
+}
+
+/* FET docs (iconitos naranja con A/B) */
+.fet { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.fet-docs { display: inline-flex; gap: 10px; }
+.fet-doc {
+  position: relative; width: 54px; height: 54px;
+  border: 0; border-radius: 10px;
+  background: var(--orange);
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  cursor: pointer;
+  transition: transform .05s ease, filter .18s ease;
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: translateY(1px); }
+}
+.fet-doc .sheet {
+  position: absolute; inset: 6px;
+  background: #fff; border-radius: 4px;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.1);
+}
+.fet-doc .letter {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 22px; color: #222;
+}
+
+/* Encabezados de los dos bloques (NFPA / Transporte) */
+.header-split .cell {
+  background: #f0f0f0; font-weight: 800; border-top: 1px solid #cfd6dd;
+}
+.split-left { grid-column: 1 / 2; }
+.split-right { grid-column: 2 / 3; }
+
+/* Fila de contenido a dos columnas */
+.row.split .cell { padding: 0; }
+.no-pad { padding: 0 !important; }
+
+/* NFPA a la izquierda */
+.nfpa-table {
+  border-right: 1px solid #e6e6e6;
+}
+.nfpa-row {
+  display: grid; grid-template-columns: 1fr 64px;
+  align-items: center;
+  min-height: 44px;
+  &:not(:last-child) { border-bottom: 1px solid #e6e6e6; }
+}
+.nfpa-label {
+  color: #fff; font-weight: 800; letter-spacing: .3px; padding: 10px 12px;
+}
+.nfpa-score {
+  text-align: center; font-weight: 900; color: #111; background: #fff;
+}
+
+/* Colores NFPA */
+.nfpa-row.blue   .nfpa-label { background: var(--nfpa-blue); }
+.nfpa-row.red    .nfpa-label { background: var(--nfpa-red);  }
+.nfpa-row.yellow .nfpa-label { background: var(--nfpa-yellow); color:#111; }
+.nfpa-row.gray   .nfpa-label { background: var(--nfpa-gray);  color:#111; }
+
+/* Tabla derecha (Clasificación transporte) */
+.transp-table .t-row {
+  display: grid; grid-template-columns: 1fr 110px;
+  align-items: center; min-height: 44px;
+  &:not(:last-child) { border-bottom: 1px solid #e6e6e6; }
+}
+.t-label { background: #f6a066; color: #222; font-weight: 800; padding: 10px 12px; }
+.t-row.alt .t-label { background: #f3954f; }
+.t-value { text-align: center; font-weight: 900; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ficha-table { grid-template-columns: 1fr; }
+  .cell.right { text-align: left; }
+  .nfpa-table { border-right: 0; }
+  .header-split .cell { grid-column: 1 / -1; }
+  .split-left, .split-right { grid-column: 1 / -1; }
+  .row.split .cell { padding: 0; }
+  .transp-table .t-row { grid-template-columns: 1fr 1fr; }
+}
+
+.flame { position: absolute; inset: 0; }
+

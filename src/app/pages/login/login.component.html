@@ -1,0 +1,91 @@
+<ng-container>
+  <section id="wrapper" class="login-register login-sidebar">
+    <div class="boxRedBotton">
+      <div class="area">
+        <ul class="circles">
+          <li *ngFor="let _ of items"></li>
+        </ul>
+      </div>
+    </div>
+
+
+    <div class="login-box card" *ngIf="!recuperarPass">
+      <div class="card-body">
+        <form class="" [formGroup]="loginForm" autocomplete="off">
+          <a href="/home" class="d-flex justify-content-center">
+           <img class="tamanoLogo" src="assets/img/logo.png" alt="Home" />
+          </a>
+          <div class="d-flex justify-content-center pt-3 tada">
+            <img src="../../../assets/img/quimica.png" style="width: 60px;">
+          </div>
+           <span class="d-block text-center pt-2"><b>Bienvenido al portal de Ciquime</b></span>
+           <span class="d-block text-center pb-4">Por favor, ingrese su usuario y contraseña</span>
+          <div class="form-group m-t-40">
+            <div class="col">
+              <input class="form-control" type="text" formControlName="nombre" placeholder="Usuario">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col">
+              <input class="form-control" type="password" formControlName="password" placeholder="Password">
+            </div>
+          </div>
+
+          <div class="form-group text-center m-t-20">
+            <div class="col">
+              <button [disabled]="!isValid" class="btn btn-primary btn-lg btn-block btn-rounded" (click)="login()">
+                Ingresar
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group m-b-0">
+            <div class="col-sm-12 text-center pointer" (click)="recuperarPass = true">
+              ¿Te olvidaste tu contraseña? <a routerLinkActive="active"
+                class="color-principal"><b class="color-principal">Recuperar</b></a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+     <div class="login-box card" *ngIf="recuperarPass">
+      <div class="card-body">
+        <form class="" [formGroup]="loginForm" autocomplete="off">
+          <a href="/home" class="d-flex justify-content-center">
+           <img class="tamanoLogo" src="assets/img/logo.png" alt="Home" />
+          </a>
+          <div class="d-flex justify-content-center pt-3 tada">
+            <img src="../../../assets/img/candado-ssl.png" style="width: 60px;">
+          </div>
+            <span class="d-block text-center pt-2"><b>Recuperación de Contraseña</b></span>
+           <span class="d-block text-center pb-4">Ingrese su Correo para recuperarla</span>
+          <div class="form-group m-t-40">
+            <div class="col">
+              <input class="form-control" type="text" formControlName="nombre" placeholder="Usuario">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col">
+              <input class="form-control" type="text" formControlName="email" placeholder="Correo Electrónico">
+            </div>
+          </div>
+
+          <div class="form-group text-center m-t-20">
+            <div class="col">
+              <button [disabled]="!isValid" class="btn btn-primary btn-lg btn-block btn-rounded" (click)="login()">
+                Recuperar Contraseña
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group m-b-0">
+            <div class="col-sm-12 text-center pointer" (click)="recuperarPass = false">
+              <a routerLinkActive="active" class="color-principal"><b>Regresar</b></a>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</ng-container>

@@ -1,0 +1,77 @@
+:host {
+  /* ajustá el alto del header si querés que quede sticky justo debajo */
+  --header-height: 64px;
+  --bg-dark: #3f3f3f;
+  --text-dark: #2c2c2c;
+}
+
+.subnav {
+  background: var(--bg-dark);
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  position: sticky;      /* se pega debajo del header */
+  top: var(--header-height);
+  z-index: 10;
+  /* línea celeste superior como en la captura */
+}
+
+/* contenedor de las píldoras */
+.subnav-inner {
+  display: flex;
+  gap: 12px;
+  padding: 10px 34px 12px 35px;
+  justify-content: center;
+  overflow-x: auto;        /* si no entran, se hace scroll horizontal */
+  scrollbar-width: thin;
+}
+
+/* botón píldora */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #dcdcdc;
+  border-radius: 12px;
+  padding: 6px 14px;
+  background: transparent;
+  color: #f3f3f3;
+  text-decoration: none;
+  font-weight: 700;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .1s ease;
+
+  &:hover { transform: translateY(-1px); }
+
+  /* icono lupa */
+  .ico svg {
+    width: 18px;
+    height: 18px;
+  }
+  .lens {
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 2.2px;
+  }
+  .handle {
+    stroke: #ffffff;
+    stroke-linecap: round;
+    stroke-width: 2.2px;
+  }
+
+  /* estado activo -> blanco como en tu imagen */
+  &.is-active {
+    background: #ffffff;
+    color: var(--text-dark);
+    border-color: #ffffff;
+
+    .lens, .handle { stroke: var(--text-dark); }
+  }
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .subnav-inner { justify-content: flex-start; }
+}
+
+.icon-width{
+  width: 20px;
+}

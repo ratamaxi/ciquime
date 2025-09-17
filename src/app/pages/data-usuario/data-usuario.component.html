@@ -1,0 +1,76 @@
+<div class="container">
+<div class="row">
+  <div class="col tabla-scroll">
+    <div class="row py-4">
+      <div class="col-6">
+        <h4>Búsqueda de usuarios</h4>
+        <span>Sección para editar y administrar usuarios</span>
+      </div>
+      <div class="col-6">
+          <div class="form">
+      <i class="fa fa-search"></i>
+      <input
+        type="text"
+        [(ngModel)]="busqueda"
+        (ngModelChange)="filtrarUsuarios()"
+        class="form-control form-input"
+        placeholder="Ingrese el usuario que desea buscar"
+      />
+    </div>
+      </div>
+    </div>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Accion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="pointer usuario-selector fadeIn" *ngFor="let data of mockUsuario">
+          <td data-bs-toggle="modal" data-bs-target="#agregarEjercicio">
+           {{data.user}}
+          </td>
+          <td data-bs-toggle="modal" data-bs-target="#agregarEjercicio">
+             {{data.email}}
+          </td>
+          <td data-bs-toggle="modal" data-bs-target="#agregarEjercicio">
+                <i
+              data-bs-toggle="modal"
+              data-bs-target="#editUser"
+              app-tooltip
+              class="fa fa-edit pr-3"
+              (click)="editUser()"
+            ></i>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- <ng-container *ngIf="showLoader" [ngTemplateOutlet]="loading"></ng-container> -->
+  </div>
+</div>
+
+<!-- <div class="row px-5 fadeIn" *ngIf="data.length === 0 && showEmpty">
+  <div class="box-empty d-flex align-items-center justify-content-center flex-column">
+    <img class="icono" src="../../../assets/img/caja.png">
+    <span class="pt-2">No se encontraron resultados a la búsqueda</span>
+  </div>
+</div> -->
+<div class="row">
+  <div class="col">
+<nav aria-label="Page navigation example">
+  <ul class="pagination d-flex justify-content-end">
+    <li class="page-item"><a class="page-link">Previous</a></li>
+    <li class="page-item"><a class="page-link">1</a></li>
+    <li class="page-item"><a class="page-link">2</a></li>
+    <li class="page-item"><a class="page-link">3</a></li>
+    <li class="page-item"><a class="page-link">Next</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+</div>
+

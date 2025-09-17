@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+  padding: 16px 18px;
+}
+
+/* Título */
+.title {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+/* Cada fila: que el bloque de la barra sea el flexible */
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr; /* 👈 izquierda (auto) + derecha (flex) */
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  min-width: 0; /* 👈 permite encoger sin overflow */
+
+  & + .row { border-top: 1px solid #f0f0f0; }
+}
+
+.left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.count {
+  display: inline-flex;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.label { font-weight: 700; color: #111827; }
+
+/* Contenedor de la barra + porcentaje */
+.right {
+  display: grid;
+  grid-template-columns: 1fr auto; /* 👈 barra ocupa lo que haya, % se ajusta */
+  align-items: center;
+  gap: 10px;
+  min-width: 0; /* 👈 clave para que la barra no fuerce overflow */
+}
+
+.pct {
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+}
+
+/* Barra flexible: ocupa el 100% del espacio disponible */
+.bar.track {
+  position: relative;
+  width: 100%;      /* 👈 antes era 200px: eliminado */
+  min-width: 0;     /* 👈 permite encoger sin overflow */
+  height: 8px;
+  border-radius: 999px;
+  background: #edf2f7;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.bar.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  transition: width .25s ease;
+}
+
+.bar.fill.ok    { background: #1faa85; } /* verde */
+.bar.fill.warn  { background: #f6b400; } /* amarillo */
+.bar.fill.error { background: #e64942; } /* rojo */
+
+/* Responsive: si el ancho es muy chico, apilá contenido */
+@media (max-width: 420px) {
+  .row {
+    grid-template-columns: 1fr; /* izquierda arriba, derecha abajo */
+    gap: 6px;
+  }
+  .right {
+    grid-template-columns: 1fr auto;
+  }
+}

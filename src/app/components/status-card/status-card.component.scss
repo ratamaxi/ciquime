@@ -1,0 +1,125 @@
+:host {
+  --primary: #0d6efd;
+  display: block;
+  width: 100%;
+}
+
+:host > .d-flex {
+  width: 100%;
+  gap: 16px;
+  align-items: stretch;
+  flex-wrap: wrap;  /* 🔑 */
+}
+
+/* El root que tenés en el HTML es .d-flex → hacelo wrap */
+:host > .d-flex {
+  width: 100%;
+  gap: 16px;
+  align-items: stretch;
+  flex-wrap: wrap;          /* 🔑 permite que los chips bajen */
+}
+
+/* Tarjetas Buscar / Crear: tamaño flexible */
+.status-card {
+  flex: 1 1 210px;          /* 🔑 base ~210px, crece si hay lugar */
+  max-width: 120px;
+
+  border-radius: 10px;
+  background: #fff;
+  margin-top: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+  overflow: hidden;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    transform: translateY(-1px);
+    border-color: var(--primary);
+    .card-header { background-color: var(--primary) !important; }
+  }
+
+  .card-body-principal,
+  .card-body {
+    min-height: 100px;
+    position: relative;
+  }
+
+  .icon-style { width: 60px; position: absolute; right: 30px; }
+  .card-header { background-color: rgb(69, 69, 69) !important; }
+  .fw-bold { font-weight: 700; }
+  .text-value{
+    font-size: 23px;
+    position: relative;
+    top: -40px;
+    background: #dad9d9;
+    left: -16px;
+    width: 35px; height: 35px;
+    align-items: center;
+    border-radius: 25px;
+  }
+}
+
+/* La grilla de chips ocupa lo que quede y PUEDE ENCOGER */
+.chips-col {
+  flex: 1 1 320px;          /* 🔑 base 320px (puede bajar y wrappear) */
+  min-width: 0;             /* 🔑 permite encogerse sin overflow */
+  display: grid;
+  grid-template-columns: repeat(3, minmax(200px, 1fr)); /* un poco más angosto */
+  gap: 9px;
+
+  @media (max-width: 1280px) {
+    grid-template-columns: repeat(2, minmax(200px, 1fr));
+  }
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-chip {
+  display: flex;
+  align-items: stretch;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  transition: box-shadow .18s ease, transform .18s ease;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 6px 18px rgba(0,0,0,.2);
+    transform: translateY(-1px);
+    .chip-left { background: var(--primary); }
+    .chip-right { color: var(--primary); }
+  }
+
+  .chip-left {
+    background: #3f3f3f;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    transition: background .18s ease;
+    img { width: 34px; height: 34px; object-fit: contain; filter: invert(1); }
+  }
+
+  .chip-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 14px 18px;
+    color: #333;
+    transition: color .18s ease;
+
+    .chip-title   { font-weight: 700; line-height: 1.1; font-size: 18px; }
+    .chip-subtitle{ font-weight: 700; line-height: 1.1; font-size: 12px; }
+  }
+}
+

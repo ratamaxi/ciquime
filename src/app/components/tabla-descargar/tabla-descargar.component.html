@@ -1,0 +1,97 @@
+<div class="veri container pt-5">
+  <h3 class="mb-3">{{title}}</h3>
+
+  <!-- Barra de pestañas -->
+  <div class="tabs">
+
+    <div class="search">
+      <label>Buscar:</label>
+      <input type="text" [(ngModel)]="query" (ngModelChange)="page=1" placeholder="Ingrese un dato a buscar…" />
+    </div>
+
+    <a class="cta pointer" title="Buscar">Buscar</a>
+  </div>
+
+  <!-- Controles superiores -->
+  <div class="topbar">
+    <div class="left">
+      <span>Mostrar</span>
+      <select [(ngModel)]="pageSize" (change)="page=1">
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="25">25</option>
+        <option [ngValue]="50">50</option>
+      </select>
+      <span>registros</span>
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="w-160" (click)="toggleSort('codigoAprobacion')">
+              Código de Aprobación
+              <span class="sort" [class.asc]="sortKey==='codigoAprobacion' && sortDir===1"
+                [class.desc]="sortKey==='codigoAprobacion' && sortDir===-1"></span>
+            </th>
+            <th class="w-160" (click)="toggleSort('nombreInterno')">
+              Nombre Interno
+              <span class="sort" [class.asc]="sortKey==='nombreInterno' && sortDir===1"
+                [class.desc]="sortKey==='nombreInterno' && sortDir===-1"></span>
+            </th>
+            <th (click)="toggleSort('producto')">
+              Producto
+              <span class="sort" [class.asc]="sortKey==='producto' && sortDir===1"
+                [class.desc]="sortKey==='producto' && sortDir===-1"></span>
+            </th>
+            <th class="w-260" (click)="toggleSort('fabricante')">
+              Fabricante
+              <span class="sort" [class.asc]="sortKey==='fabricante' && sortDir===1"
+                [class.desc]="sortKey==='fabricante' && sortDir===-1"></span>
+            </th>
+            <th class="w-220 center">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let i of pageData; let idx = index" [class.alt]="idx % 2 === 1">
+            <td class="muted">{{ i.codigoAprobacion || '' }}</td>
+            <td class="muted">{{ i.nombreInterno || '' }}</td>
+            <td>{{ i.producto }}</td>
+            <td class="wrap">{{ i.fabricante }}</td>
+            <td class="center">
+              <button class="icon download" title="Editar" routerLink="/panel/editar-insumo"><svg viewBox="0 0 16 16">
+                  <path
+                    d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2m2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="pageData.length === 0">
+            <td colspan="6" class="empty">No hay resultados para mostrar.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer tabla -->
+    <div class="table-footer">
+      <div class="muted">
+        Mostrando registros del
+        <b>{{ total ? ( (page-1)*pageSize + 1 ) : 0 }}</b>
+        al
+        <b>{{ Math.min(page*pageSize, total) }}</b>
+        de un total de
+        <b>{{ total }}</b>
+        registros
+      </div>
+
+      <div class="pager">
+        <button class="btn" (click)="prev()" [disabled]="page===1">Anterior</button>
+        <button class="btn" (click)="next()" [disabled]="page*pageSize>=total">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>

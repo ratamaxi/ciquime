@@ -1,0 +1,70 @@
+:host {
+  --text:  #1f2937;
+  --muted: #6b7280;
+  --card-bg: #fff;
+  --shadow: 0 12px 24px rgba(0,0,0,.08);
+  --row-alt: #f3f4f6;
+
+  display: block;
+}
+
+/* Card contenedor */
+.ficha-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+/* Grilla base (2 columnas) */
+.ficha-table {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);   /* o 280px si preferís */
+  border: 1px solid #dedede;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.row { display: contents; }
+
+.cell {
+  padding: 12px 14px;
+  min-width: 0;
+  color: var(--text);
+  border-top: 1px solid #e6e6e6;
+  line-height: 1.45;
+}
+
+.row:first-child .cell { border-top: 0; }
+
+.cell.label {
+  background: #e9e9e9;
+  font-weight: 800;
+}
+
+.cell.value { background: #fff; }
+.cell.right { text-align: right; }
+.row.alt .cell { background: #f9fafb; }
+
+/* Sección: BRIGADA */
+.row.section .cell {
+  border-top: 1px solid #cfd6dd;
+  background: #f0f0f0;
+}
+.section-title { font-weight: 900; letter-spacing: .3px; }
+.section-icon { display: flex; justify-content: flex-end; align-items: center; }
+.flame-badge { width: 56px; height: 56px; display: inline-block; }
+.flame-badge svg { width: 100%; height: 100%; }
+
+/* Zebra alternada en contenido */
+.row.zebra.alt .cell { background: var(--row-alt); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ficha-table { grid-template-columns: 1fr; }
+  .cell.label { width: auto; }
+  .cell.right { text-align: left; }
+  .section-icon { justify-content: flex-start; }
+}
+
+

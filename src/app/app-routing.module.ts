@@ -1,10 +1,60 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './pages/login/login.component';
+import { HomeComponent } from './pages/home/home.component';
+import { PagesComponent } from './pages/pages.component';
+import { AuthGuard, AuthChildGuard } from './pages/login/login-core/auth.guard';
+import { AyudaVideosComponent } from './pages/ayuda-videos/ayuda-videos.component';
+import { DataUsuarioComponent } from './pages/data-usuario/data-usuario.component';
+import { SgaComponent } from './pages/sga/sga.component';
+import { EtiquetasComponent } from './pages/etiquetas/etiquetas.component';
+import { BuscarInsumoComponent } from './pages/buscar-insumo/buscar-insumo.component';
+import { RegistroInsumoComponent } from './pages/registro-insumo/registro-insumo.component';
+import { VerInsumoComponent } from './pages/ver-insumo/ver-insumo.component';
+import { EditarInsumoComponent } from './pages/editar-insumo/editar-insumo.component';
+import { TablaDescargarComponent } from './components/tabla-descargar/tabla-descargar.component';
+import { DescargaFetComponent } from './pages/descarga-fet/descarga-fet.component';
+import { DescargaHsoComponent } from './pages/descarga-hso/descarga-hso.component';
+import { DescargaFdsComponent } from './pages/descarga-fds/descarga-fds.component';
+import { DescargaEtiquetaComponent } from './pages/descarga-etiqueta/descarga-etiqueta.component';
 
-const routes: Routes = [];
+const routes: Routes = [
+  // default: login primero
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+
+  // login
+  { path: 'login', component: LoginComponent },
+
+  // shell del panel
+  {
+    path: 'panel',
+    component: PagesComponent,
+    canActivate: [AuthGuard],
+    canActivateChild: [AuthChildGuard],
+    children: [
+      { path: 'home', component: HomeComponent },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      {path: 'ayuda-video', component: AyudaVideosComponent},
+      {path: 'data-user', component: DataUsuarioComponent},
+      {path: 'sga', component: SgaComponent},
+      {path: 'etiquetas', component: EtiquetasComponent},
+      {path: 'buscar-insumos', component: BuscarInsumoComponent},
+      {path: 'registro-insumo', component: RegistroInsumoComponent},
+      {path: 'ver-insumo', component: VerInsumoComponent},
+      {path: 'editar-insumo', component: EditarInsumoComponent},
+      {path: 'descarga-fet', component: DescargaFetComponent},
+      {path: 'descarga-hso', component: DescargaHsoComponent},
+      {path: 'descarga-fds', component: DescargaFdsComponent},
+      {path: 'descarga-etiqueta', component: DescargaEtiquetaComponent},
+    ],
+  },
+
+  // wildcard
+  { path: '**', redirectTo: 'login' },
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
