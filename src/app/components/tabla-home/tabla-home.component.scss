@@ -92,9 +92,10 @@
 
 .tabla {
   width: 100%;
+  min-width: 780px;
   border-collapse: separate;
   border-spacing: 0;
-  min-width: 780px;
+    table-layout: fixed;
 
   thead th {
     text-align: left;
@@ -109,6 +110,10 @@
     padding: .9rem 1rem;
     vertical-align: middle;
     color: var(--text);
+      white-space: normal;
+    overflow-wrap: anywhere;  /* o word-break: break-word; */
+    word-break: break-word;
+    hyphens: auto;
   }
 
   tbody tr:nth-child(even) {
@@ -116,7 +121,7 @@
   }
 
   .col-producto, .col-fabricante {
-    max-width: 420px;
+   // max-width: 420px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -125,6 +130,7 @@
   .col-estado {
     width: 120px;
     text-align: left;
+    white-space: nowrap;
   }
 
   .estado-pill {

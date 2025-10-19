@@ -147,3 +147,116 @@ label { font-weight: 800; color: var(--text); }
   &:active { transform: translateY(1px); }
   &:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
 }
+
+/* —— RNPQ segment —— */
+.segmented {
+  display: inline-flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.seg-btn {
+  padding: 10px 16px;
+  font-weight: 600;
+  color: #64748b; /* slate-500 */
+  background: transparent;
+  border: 0;
+  cursor: default; /* es de lectura */
+  user-select: none;
+}
+
+.seg-btn + .seg-btn {
+  border-left: 1px solid #e2e8f0;
+}
+
+.seg-btn.active {
+  color: #0f172a;          /* slate-900 */
+  background: #e2e8f0;     /* slate-200 */
+}
+
+/* —— iPel dots —— */
+.ipel {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: 2px solid #cbd5e1;  /* slate-300 */
+  background: transparent;
+  position: relative;
+  cursor: default; /* lectura */
+}
+
+.dot span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0f172a; /* slate-900 */
+}
+
+.dot.active {
+  background: #2563eb;   /* blue-600 */
+  border-color: #2563eb;
+}
+
+.dot.active span {
+  color: #fff;
+}
+
+/* (Opcional) controles disabled visuales */
+select[disabled],
+input[disabled] {
+  background-color: #f8fafc; /* slate-50 */
+  color: #64748b;            /* slate-500 */
+}
+
+/* —— Botones planos (revisión con estado disabled) —— */
+button.btn-flat {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: box-shadow .18s ease, transform .06s ease, filter .18s ease, opacity .18s ease;
+
+  /* Estados interactivos (solo si NO está disabled) */
+  &:not(:disabled):hover { box-shadow: 0 6px 16px rgba(0,0,0,.1); filter: brightness(1.05); }
+  &:not(:disabled):active { transform: translateY(1px); }
+}
+
+/* Estado deshabilitado real */
+button.btn-flat:disabled,
+button.btn-flat[disabled],
+button.btn-flat[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+  pointer-events: none; /* por si algún framework re-activa eventos */
+}
+
+/* Si querés mantener una versión "clara" (borde + fondo blanco) como variante */
+button.btn-flat.alt {
+  background: #fff;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+button.btn-flat.alt:disabled,
+button.btn-flat.alt[disabled],
+button.btn-flat.alt[aria-disabled="true"] {
+  color: #6b7280;              /* slate-500 */
+  border-color: #e2e8f0;       /* slate-200 */
+  background: #f8fafc;         /* slate-50 */
+}
+

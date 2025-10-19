@@ -54,7 +54,6 @@ export class EtiquetasComponent {
       confirmButtonText: 'Aceptar'
     }).then((result) => {
       if (result.isConfirmed) {
-        console.log('ENTRO')
       }
     })
 

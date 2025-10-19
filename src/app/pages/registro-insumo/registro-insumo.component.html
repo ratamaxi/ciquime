@@ -46,7 +46,7 @@
           <div class="field">
             <select id="fabricante" class="input" formControlName="fabricante">
               <option value="" disabled>Seleccioná un fabricante…</option>
-              <option *ngFor="let fab of fabricantes" [value]="fab">{{ fab }}</option>
+              <option *ngFor="let fab of fabricantes" [value]="fab.id">{{ fab.nombre }}</option>
             </select>
             <div class="hint error" *ngIf="f['nombre'].touched && f['nombre'].invalid">
               Seleccioná un fabricante.
@@ -131,7 +131,7 @@
             Cancelar
           </button>
 
-          <button class="btn btn-primary" type="submit" [disabled]="invalid">
+          <button class="btn btn-primary" type="submit" [disabled]="form.invalid">
             <span class="btn-icon">
               <svg viewBox="0 0 24 24">
                 <path d="M9 16.17 4.83 12 3.41 13.41 9 19l12-12L19.59 5 9 15.59z" />

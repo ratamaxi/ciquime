@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { take } from 'rxjs';
+import { RegistrosService } from 'src/app/services/registros.service';
 
 export interface EstadisticasInsumosData {
   aprobados: number;
@@ -14,14 +16,14 @@ type Clave = keyof EstadisticasInsumosData;
   templateUrl: './estadisticas.component.html',
   styleUrls: ['./estadisticas.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  providers: [RegistrosService]
 })
 export class EstadisticasComponent {
 /** Título de la card */
   @Input() titulo = 'Estadísticas de insumos';
 
-  /** Datos de conteo */
-  @Input() data: EstadisticasInsumosData = { aprobados: 0, pendientes: 0, rechazados: 0 };
+  data: EstadisticasInsumosData = { aprobados: 0, pendientes: 0, rechazados: 0 };
 
   /**
    * Qué filas muestran barra de progreso.
@@ -29,6 +31,12 @@ export class EstadisticasComponent {
    * Si querés todas: ['aprobados','pendientes','rechazados']
    */
   @Input() mostrarBarras: Clave[] = ['aprobados', 'pendientes'];
+
+  constructor(private registroService: RegistrosService) {
+      this.registroService.obtenerEstadisticaInsumo(65)
+        .pipe(take(1))
+        .subscribe((resp: EstadisticasInsumosData) => this.data = resp);
+    }
 
   get total(): number {
     const { aprobados, pendientes, rechazados } = this.data || { aprobados: 0, pendientes: 0, rechazados: 0 };

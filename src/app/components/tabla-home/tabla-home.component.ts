@@ -1,13 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { switchMap, take } from 'rxjs';
+import { RegistrosService } from 'src/app/services/registros.service';
+import { UsuarioService } from 'src/app/services/usuario.service';
 
-export type EstadoRegistro = 'aceptado' | 'rechazado' | 'pendiente';
+export type EstadoRegistro = 'APROBADO' | 'RECHAZADO' | 'PENDIENTE' | 'ELIMINADO';
 
 export interface Registro {
+  actualizado: Date;
+  id: string;
   codigo?: string | null;
   nombreInterno?: string | null;
-  producto: string;
-  fabricante: string;
+  nombre_producto: string;
+  nomb_empresa: string;
   estado: EstadoRegistro;
 }
 
@@ -16,39 +21,43 @@ export interface Registro {
   templateUrl: './tabla-home.component.html',
   styleUrls: ['./tabla-home.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
+  providers: [RegistrosService] // ← este puede quedarse si querés una instancia propia del service de registros
 })
 export class TablaHomeComponent {
- /** Título del bloque */
   @Input() titulo = 'Últimos registros aprobados';
-
-  /** Registros a mostrar */
-  @Input() registros: Registro[] = [
-    // Ejemplo (podés borrar estos mocks)
-    { codigo: '', nombreInterno: '', producto: 'Propylene Glycol', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', estado: 'aceptado' },
-    { codigo: '', nombreInterno: '', producto: '1,4-DIOXANO', fabricante: 'MERCK S.A.', estado: 'rechazado' },
-    { codigo: '', nombreInterno: '', producto: 'HEPES, Free Acid, ULTROL Grade', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', estado: 'pendiente' },
-    { codigo: '', nombreInterno: '', producto: 'Agar de contacto CASO + LT - ICR+ (821)', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', estado: 'pendiente' },
-    { codigo: '', nombreInterno: '', producto: 'Silica fumed', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', estado: 'aceptado' },
-  ];
-
-  /** Evento del botón “Ver Más…” */
   @Output() verMas = new EventEmitter<void>();
 
-  /** Filtro activo (clic en los chips) */
+  registros: Registro[] = [];
   activeFilter: 'todos' | EstadoRegistro = 'todos';
+  readonly MAX_TO_SHOW = 5;
 
-  /** Registros filtrados según chip seleccionado */
-  get filtered(): Registro[] {
-    if (this.activeFilter === 'todos') return this.registros ?? [];
-    return (this.registros ?? []).filter(r => r.estado === this.activeFilter);
+  constructor(
+    private registroService: RegistrosService,
+    private usuarioService: UsuarioService
+  ) {
+    // Espera al userId y recién pide los registros
+    this.usuarioService.userId$
+      .pipe(
+        take(1), // si solo querés cargar una vez
+        switchMap((userId) => this.registroService.obtenerRegistroData(userId))
+      )
+      .subscribe((resp) => (this.registros = resp));
   }
 
-  /** Conteos por estado (para mostrar en chips si querés) */
+  get filtered(): Registro[] {
+    if (this.activeFilter === 'todos') return this.registros ?? [];
+    return (this.registros ?? []).filter((r) => r.estado === this.activeFilter);
+  }
+
   get counts() {
-    const base = { aceptado: 0, rechazado: 0, pendiente: 0 };
-    for (const r of (this.registros ?? [])) base[r.estado]++;
+    const base = { APROBADO: 0, RECHAZADO: 0, PENDIENTE: 0, ELIMINADO: 0 };
+    for (const r of this.registros ?? []) base[r.estado]++;
     return base;
+  }
+
+  get hasMore(): boolean {
+    return this.filtered.length > this.MAX_TO_SHOW;
   }
 
   setFilter(f: 'todos' | EstadoRegistro) {
@@ -56,6 +65,6 @@ export class TablaHomeComponent {
   }
 
   trackByRow(_i: number, row: Registro) {
-    return `${row.codigo ?? ''}-${row.producto}-${row.fabricante}-${row.estado}`;
+    return `${row.codigo ?? ''}-${row.nombre_producto}-${row.nomb_empresa}-${row.estado}`;
   }
 }

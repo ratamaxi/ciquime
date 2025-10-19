@@ -1,86 +1,164 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-
-type EstadoInsumo = 'aprobado' | 'pendiente' | 'rechazado';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { take } from 'rxjs';
+import { ApiInsumo, ApiProducto, ApiResp, EditarInsumoRequest, Estado, SectorInsumoResponse, SectorInsumoResponseData } from 'src/app/interfaces/registros.interface';
+import { FixUtf8Pipe } from 'src/app/pipe/string.pipe';
+import Swal from "sweetalert2";
+import { RegistrosService } from 'src/app/services/registros.service';
 
 @Component({
   selector: 'app-editar-insumo',
   templateUrl: './editar-insumo.component.html',
   styleUrls: ['./editar-insumo.component.scss'],
   standalone: true,
-  imports:[CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FixUtf8Pipe, RouterModule],
 })
-export class EditarInsumoComponent {
-form: FormGroup;
-  saving = false;
+export class EditarInsumoComponent implements OnInit {
+  public form: FormGroup;
+  public saving = false;
+  public loading = false;
+  public errorMsg = '';
+  public editarCampos: boolean = false
+  public sectores: SectorInsumoResponseData[]= [];
+  public valoracionesApi = ['A', 'B', 'C', 'D'];
+  private empresaId: string = localStorage.getItem('id_empresa') ?? '';
+  private idUser: string = localStorage.getItem('idUser') ?? '';
+  private materiaId: string = '';
 
-  // catálogos mock
-  sectores = ['Producción', 'Laboratorio', 'Depósito', 'Calidad'];
-  valoracionesApi = ['A', 'B', 'C', 'D'];
-
-  constructor(private fb: FormBuilder) {
-    // mock de carga de registro
-    const mock = {
-      nombreOriginal: 'ETER DE PETROLEO',
-      fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.',
-      nombreInterno: '',
-      sector: '',
-      rnpq: false,
-      lote: '',
-      presentacion: '',
-      valoracionApi: '',
-      notasUsuario: '',
-      ipel: 1,
-      codigoAprobacion: '',
-      codigoConsejo: '',
-      notasAdmin: '',
-      estado: 'aprobado' as EstadoInsumo,
-    };
-
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private registros: RegistrosService,
+    private router: Router
+  ) {
     this.form = this.fb.group({
-      nombreOriginal: [{ value: mock.nombreOriginal, disabled: false }],
-      fabricante: [{ value: mock.fabricante, disabled: false }],
-      nombreInterno: [mock.nombreInterno, [Validators.required, Validators.minLength(2)]],
-      sector: [mock.sector],
-      rnpq: [mock.rnpq],
-      lote: [mock.lote],
-      presentacion: [mock.presentacion],
-      valoracionApi: [mock.valoracionApi],
-      notasUsuario: [mock.notasUsuario],
-      ipel: [mock.ipel, [Validators.min(1), Validators.max(5)]],
-      codigoAprobacion: [mock.codigoAprobacion],
-      codigoConsejo: [mock.codigoConsejo],
-      notasAdmin: [mock.notasAdmin],
-      estado: [mock.estado, [Validators.required]],
+      nombreOriginal: [{ value: '', disabled: false }],
+      fabricante: [{ value: '', disabled: false }],
+      nombreInterno: ['', [Validators.required, Validators.minLength(2)]],
+      sector: [''],
+      rnpq: [false],
+      lote: [''],
+      presentacion: [''],
+      valoracionApi: [''],
+      notasUsuario: [''],
+      ipel: [1, [Validators.min(1), Validators.max(5)]],
+      codigoAprobacion: [''],
+      codigoConsejo: [''],
+      notasAdmin: [''],
+      estado: ['pendiente' as Estado, [Validators.required]],
+    });
+    this.registros.obtenerDataSectorInsumo(this.empresaId).pipe(take(1)).subscribe({
+      next: (resp: SectorInsumoResponse) => {
+        this.sectores = resp.data
+      },
+      error: () => this.sectores = []
+    })
+  }
+
+  ngOnInit() {
+    this.route.paramMap.subscribe((p) => {
+      this.materiaId = p.get('id') ?? '';
+      if (!this.materiaId || !this.empresaId || !this.idUser) {
+        this.errorMsg = 'Faltan identificadores para cargar el insumo.';
+        return;
+      }
+
+      this.loading = true;
+      this.registros
+        .obtenerDataEditarUsuario(this.materiaId, this.empresaId, this.idUser)
+        .subscribe({
+          next: (resp: ApiResp) => {
+            if (!resp?.ok) {
+              this.errorMsg = resp?.msj || 'No se pudo obtener la información del insumo.';
+              return;
+            }
+            this.patchFromApi(resp);
+            this.lockReadOnlyFields(); // ← deshabilitamos los campos pedidos
+          },
+          error: (err) => {
+            console.error('obtenerDataEditarUsuario error:', err);
+            this.errorMsg = err?.message || 'Error al consultar los datos.';
+          },
+          complete: () => (this.loading = false),
+        });
+    });
+
+
+  }
+
+  // ---------- helpers de mapeo ----------
+  private mapEstadoApiToForm(estadoApi?: string): Estado {
+    const e = (estadoApi || '').toLowerCase();
+    if (e.includes('APROB')) return 'APROBADO';
+    if (e.includes('RECHAZ')) return 'RECHAZADO';
+    return 'PENDIENTE';
+  }
+
+  private siNoToBool(v?: string | boolean | null): boolean {
+    if (typeof v === 'boolean') return v;
+    return String(v || '').toUpperCase() === 'SI';
+  }
+
+  private normValoracionApi(v?: string | null): string {
+    const val = (v || '').toUpperCase();
+    return this.valoracionesApi.includes(val) ? val : '';
+  }
+
+  private patchFromApi(resp: ApiResp) {
+    const ins = resp.insumo || ({} as ApiInsumo);
+    const prod = resp.producto || ({} as ApiProducto);
+
+    this.form.patchValue({
+      nombreOriginal: prod.nombre_producto ?? '',
+      fabricante: prod.fabricante ?? '',
+      nombreInterno: ins.extraname ?? '',
+      sector: ins.sector ?? '',
+      rnpq: this.siNoToBool(prod.RNPQ),
+      lote: ins.lote ?? '',
+      presentacion: ins.presentacion ?? '',
+      valoracionApi: this.normValoracionApi(ins.api ?? ''),
+      notasUsuario: ins.nota ?? '',
+      codigoAprobacion: ins.apr_code ?? '',
+      codigoConsejo: ins.nombre_calidoc ?? '',
+      notasAdmin: ins.nota_adm ?? '',
+      estado: this.mapEstadoApiToForm(ins.estado),
     });
   }
 
+  /** Deshabilita los campos: Valoración API, RNPQ, iPel y Estado */
+  private lockReadOnlyFields() {
+    this.f['valoracionApi'].disable({ emitEvent: false });
+    this.f['rnpq'].disable({ emitEvent: false });
+    this.f['ipel'].disable({ emitEvent: false });
+    this.f['estado'].disable({ emitEvent: false });
+  }
+
+  // ---------- getters y setters UI ----------
   get f() {
     return this.form.controls;
   }
 
   setRNPQ(val: boolean) {
+    if (this.f['rnpq'].disabled) return; // guard
     this.form.patchValue({ rnpq: val });
   }
 
   setIPel(n: number) {
+    if (this.f['ipel'].disabled) return; // guard
     this.form.patchValue({ ipel: n });
   }
 
   abrirHojaSGA() {
-    // Stub: acá abrirías modal / navegación
     console.log('Abrir Hoja de Clasificación SGA');
   }
 
   abrirConsejo() {
-    // Stub: acá abrirías modal / navegación
     console.log('Abrir Consejo de Aprobación');
   }
 
   onCancel() {
-    // Stub: volver o limpiar
-    console.log('Cancelar edición');
     this.form.markAsPristine();
   }
 
@@ -90,14 +168,75 @@ form: FormGroup;
       return;
     }
     this.saving = true;
-    const payload = this.form.getRawValue(); // incluye readonly
-    // Realizar request...
-    console.log('Guardar', payload);
 
-    // Simulación de guardado
-    setTimeout(() => {
-      this.saving = false;
-      // notificación / navegación
-    }, 800);
+    const v = this.form.getRawValue(); // incluye deshabilitados
+    const payload = {
+      matempresa: this.materiaId,
+      empresa_id: this.empresaId,
+      usuario_id: this.idUser,
+      extraname: v.nombreInterno,
+      sector: v.sector,
+      lote: v.lote,
+      presentacion: v.presentacion,
+      api: v.valoracionApi || null,
+      nota: v.notasUsuario,
+      apr_code: v.codigoAprobacion,
+      nombre_calidoc: v.codigoConsejo,
+      nota_adm: v.notasAdmin,
+      estado: (v.estado as Estado).toUpperCase(),
+    };
+    setTimeout(() => (this.saving = false), 600);
   }
+
+  public get isDisabled(): boolean {
+    return true
+  }
+
+ public editarInsumo(): void {
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    return;
+  }
+
+  this.saving = true;
+
+  const v = this.form.getRawValue(); // incluye deshabilitados
+  const toNull = (x: any) => {
+    const s = (x ?? '').toString().trim();
+    return s.length ? s : null;
+  };
+
+  // ⚠️ materia_id viene en la URL: /panel/editar-insumo/:id
+  const body: EditarInsumoRequest = {
+    materia_id: this.materiaId,
+    extraname: toNull(v.nombreInterno),
+    presentacion: toNull(v.presentacion),
+    sector: toNull(v.sector),
+    lote: toNull(v.lote),
+    nota: toNull(v.notasUsuario),
+  };
+
+  this.registros.modificarInsumo(body).pipe(take(1)).subscribe({
+    next: () => {
+      this.saving = false;
+      this.form.markAsPristine();
+      Swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: '¡Listo!',
+          text: 'Inusmo modificado correctamente',
+          showConfirmButton: false,
+          timer: 2500
+        });
+      this.router.navigate(['/panel/ver-insumo'])
+      },
+    error: (err) => {
+      this.saving = false;
+      this.errorMsg = err?.error?.message || 'Error al guardar los cambios.';
+      console.error('modificarInsumo error:', err);
+    }
+  });
+}
+
+
 }

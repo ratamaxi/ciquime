@@ -3,9 +3,9 @@
 
   <!-- Barra de pestañas -->
   <div class="tabs">
-    <button class="tab" [class.active]="activeTab==='aprobado'"  (click)="setTab('aprobado')">Insumos Aprobados</button>
-    <button class="tab" [class.active]="activeTab==='rechazado'" (click)="setTab('rechazado')">Insumos Rechazados</button>
-    <button class="tab" [class.active]="activeTab==='pendiente'" (click)="setTab('pendiente')">Insumos Pendientes</button>
+    <button class="tab" [class.active]="activeTab==='APROBADO'"  (click)="setTab('APROBADO')">Insumos Aprobados</button>
+    <button class="tab" [class.active]="activeTab==='RECHAZADO'" (click)="setTab('RECHAZADO')">Insumos Rechazados</button>
+    <button class="tab" [class.active]="activeTab==='PENDIENTE'" (click)="setTab('PENDIENTE')">Insumos Pendientes</button>
 
     <div class="spacer"></div>
 
@@ -68,12 +68,9 @@
           <td class="wrap">{{ i.fabricante }}</td>
           <td>{{ i.fechaFds }}</td>
           <td class="center">
-            <button class="icon" title="Editar" routerLink="/panel/editar-insumo"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2.92 2.33h-.5v-.5l9.9-9.9.5.5-9.9 9.9ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg></button>
-            <!-- <button class="icon" title="SGA"                  (click)="verSGA(i)"><svg viewBox="0 0 24 24"><path d="M12 2 22 12 12 22 2 12 12 2Zm0 2.83L4.83 12 12 19.17 19.17 12 12 4.83Z"/></svg></button>
-            <button class="icon" title="HSO"                  (click)="verHSO(i)"><svg viewBox="0 0 24 24"><path d="M6 2h9a2 2 0 0 1 2 2v3h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm0 2v16h12V9h-3V4H6Z"/></svg></button>
-            <button class="icon" title="FDS"                  (click)="verFDS(i)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6Zm4 18H6V4h7v5h5v11Z"/></svg></button>
-            <button class="icon" title="Imprimir etiqueta"    (click)="imprimirEtiqueta(i)"><svg viewBox="0 0 24 24"><path d="M19 8H5a3 3 0 0 0-3 3v5h4v4h12v-4h4v-5a3 3 0 0 0-3-3ZM7 18h10v2H7v-2Zm13-2H4v-3a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v3Z"/><path d="M17 2H7v4h10V2Z"/></svg></button>
-            <button class="icon" title="Auditar"              (click)="auditar(i)"><svg viewBox="0 0 24 24"><path d="M12 2 9.09 8.26 2 9.27l5 4.87L5.82 21 12 17.77 18.18 21 17 14.14l5-4.87-7.09-1.01L12 2Z"/></svg></button> -->
+            <button class="icon" title="Editar" [routerLink]="['/panel/editar-insumo', i.id]">
+
+              <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2.92 2.33h-.5v-.5l9.9-9.9.5.5-9.9 9.9ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg></button>
             <button class="icon danger" title="Eliminar"      (click)="eliminar(i)">
               <svg viewBox="0 0 16 16">
   <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528M8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5"/>

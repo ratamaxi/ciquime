@@ -3,7 +3,7 @@ import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Observable, tap} from 'rxjs';
 import {environment} from 'src/environments/environment';
-import {LoginDataRequest, LoginResponse} from "./auth.interface";
+import { LoginDataRequest, LoginResponse } from '../interfaces/auth.interface';
 
 @Injectable({providedIn: 'root'})
 export class LoginService {
@@ -18,6 +18,7 @@ export class LoginService {
   }
 
   public login(formData: LoginDataRequest): Observable<LoginResponse> {
+    localStorage.setItem('user', formData.user!)
     return this.http.post<LoginResponse>(`${this.base_url}/auth`, formData)
       .pipe(
         tap((response: LoginResponse) => {

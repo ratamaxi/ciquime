@@ -1,68 +1,92 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
+import { BuscarInsumoResponseItem, BuscarInsumoUI } from 'src/app/interfaces/registros.interface';
+import { RegistrosService } from 'src/app/services/registros.service';
+import { UsuarioService } from 'src/app/services/usuario.service';
+import Swal from "sweetalert2";
 
-type Insumo = {
-  producto: string;
-  fabricante: string;
-  revFDS: string;
-  fechaFDS: string; // ISO
-  url?: string;
-};
+type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 
 @Component({
   selector: 'app-buscar-insumo',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './buscar-insumo.component.html',
   styleUrls: ['./buscar-insumo.component.scss'],
-  standalone: true,
-  imports: [CommonModule, FormsModule]
 })
-export class BuscarInsumoComponent {
- // filtros
+export class BuscarInsumoComponent implements OnInit, OnDestroy {
+  private destroy$: Subject<void> = new Subject();
+  // filtros
   filtroNombre = '';
   filtroFabricante = '';
 
-  // mock de datos
-  private all: Insumo[] = [
-    { producto: 'Propylene Glycol', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', revFDS: 'A-12', fechaFDS: '2025-08-01' },
-    { producto: '1,4-DIOXANO', fabricante: 'MERCK S.A.', revFDS: 'B-03', fechaFDS: '2025-07-18' },
-    { producto: 'HEPES, Free Acid, ULTROL Grade', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', revFDS: 'C-02', fechaFDS: '2025-05-09' },
-    { producto: 'Agar de contacto CASO + LT - ICR+ (821)', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', revFDS: 'D-07', fechaFDS: '2025-04-25' },
-    { producto: 'Silica fumed', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', revFDS: 'E-10', fechaFDS: '2025-03-03' },
-    { producto: 'Acetato de Etilo', fabricante: 'MERCK S.A.', revFDS: 'F-01', fechaFDS: '2025-02-10' },
-    { producto: 'Glicerina', fabricante: 'ACME Labs', revFDS: 'G-21', fechaFDS: '2025-01-14' },
-    { producto: 'Etanol 96%', fabricante: 'ACME Labs', revFDS: 'H-08', fechaFDS: '2024-12-02' },
-    { producto: 'Isopropanol', fabricante: 'Quimex', revFDS: 'I-15', fechaFDS: '2024-11-20' },
-    { producto: 'Peróxido de Hidrógeno 30%', fabricante: 'Quimex', revFDS: 'J-05', fechaFDS: '2024-10-05' },
-  ];
+  // estado
+  loading = false;
+  error: string | null = null;
 
-  // estado de lista/orden/paginación
-  filtered: Insumo[] = [...this.all];
-  pageItems: Insumo[] = [];
-  pageSize = 6;
+  // resultados + paginación
+  pageItems: any[] = [];
+  pageSize = 10;
   page = 1;
 
-  sortKey: keyof Insumo = 'producto';
+  // orden
+  sortKey: SortKey = 'producto';
   sortDir: 1 | -1 = 1; // 1 asc, -1 desc
 
-  constructor() {
-    this.applyAll();
+  // user
+  private currentUserId: number | null = null;
+
+  constructor(
+    private registros: RegistrosService,
+    private users: UsuarioService
+  ) { }
+
+  public ngOnInit(): void {
+    // Espero el userId y disparo primera carga
+    this.users.userId$.subscribe((id) => {
+      this.currentUserId = id;
+      this.page = 1;
+      this.buscar();
+    });
   }
 
-  // UI events
-  buscar(): void {
-    this.page = 1;
-    this.applyAll();
+  // --- Acciones UI ---
+  public buscar(): void {
+    if (!this.currentUserId) return;
+    this.loading = true;
+    this.error = null;
+
+    const offset = (this.page - 1) * this.pageSize;
+
+    this.registros.buscarInsumosDisponibles(this.currentUserId, {
+      insumo: this.filtroNombre.trim(),
+      fabricante: this.filtroFabricante.trim(),
+      limit: this.pageSize,
+      offset
+    }).subscribe({
+      next: (items: any) => {
+        this.pageItems = items ?? [];
+        this.applySort();
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'No se pudieron cargar los insumos.';
+        this.pageItems = [];
+        this.loading = false;
+      }
+    });
   }
 
-  limpiar(): void {
+  public limpiar(): void {
     this.filtroNombre = '';
     this.filtroFabricante = '';
     this.page = 1;
-    this.applyAll();
+    this.buscar();
   }
 
-  sortBy(key: keyof Insumo): void {
+  public sortBy(key: SortKey): void {
     if (this.sortKey === key) {
       this.sortDir = this.sortDir === 1 ? -1 : 1;
     } else {
@@ -70,57 +94,106 @@ export class BuscarInsumoComponent {
       this.sortDir = 1;
     }
     this.applySort();
-    this.slicePage();
   }
 
-  prev(): void {
-    if (this.page > 1) {
+  public prev(): void {
+    if (this.page > 1 && !this.loading) {
       this.page--;
-      this.slicePage();
+      this.buscar();
     }
   }
-  next(): void {
-    if (this.page < this.totalPages) {
+
+  public next(): void {
+    // si la página vino “llena”, asumo que hay otra página
+    if (this.pageItems.length === this.pageSize && !this.loading) {
       this.page++;
-      this.slicePage();
+      this.buscar();
     }
-  }
-
-  // helpers
-  get total(): number { return this.filtered.length; }
-  get totalPages(): number { return Math.max(1, Math.ceil(this.total / this.pageSize)); }
-  get showingFrom(): number { return this.total === 0 ? 0 : (this.page - 1) * this.pageSize + 1; }
-  get showingTo(): number { return Math.min(this.page * this.pageSize, this.total); }
-
-  private applyAll(): void {
-    const n = this.filtroNombre.trim().toLowerCase();
-    const f = this.filtroFabricante.trim().toLowerCase();
-
-    this.filtered = this.all.filter(item =>
-      (!n || item.producto.toLowerCase().includes(n)) &&
-      (!f || item.fabricante.toLowerCase().includes(f))
-    );
-
-    this.applySort();
-    this.slicePage();
   }
 
   private applySort(): void {
     const key = this.sortKey;
     const dir = this.sortDir;
-    this.filtered.sort((a, b) => {
-      const va = (a[key] || '').toString().toLowerCase();
-      const vb = (b[key] || '').toString().toLowerCase();
+
+    this.pageItems = [...this.pageItems].sort((a, b) => {
+      let va: any = a[key];
+      let vb: any = b[key];
+
+      if (key === 'fechaFDS') {
+        // ordenar por fecha real
+        const da = va ? new Date(va).getTime() : 0;
+        const db = vb ? new Date(vb).getTime() : 0;
+        return (da - db) * dir;
+      }
+
+      va = (va ?? '').toString().toLowerCase();
+      vb = (vb ?? '').toString().toLowerCase();
       if (va < vb) return -1 * dir;
-      if (va > vb) return  1 * dir;
+      if (va > vb) return 1 * dir;
       return 0;
     });
   }
 
-  private slicePage(): void {
-    const start = (this.page - 1) * this.pageSize;
-    this.pageItems = this.filtered.slice(start, start + this.pageSize);
+  public get showingFrom(): number {
+    return this.pageItems.length === 0 ? 0 : (this.page - 1) * this.pageSize + 1;
   }
 
-  trackByRow = (_: number, r: Insumo) => r.producto + '|' + r.fabricante + '|' + r.revFDS;
+  public get showingTo(): number {
+    return (this.page - 1) * this.pageSize + this.pageItems.length;
+  }
+
+  public trackByRow = (_: number, r: BuscarInsumoUI) =>
+    `${r.producto}|${r.fabricante}|${r.revFDS}|${r.fechaFDS}`;
+
+  public verFDS(r: any) {
+    if (!r?.url) return;
+    // abre en nueva pestaña o hacé lo que corresponda
+    window.open(r.url, '_blank', 'noopener');
+  }
+
+  public agregar(r: BuscarInsumoResponseItem) {
+    console.log(r)
+    Swal.fire({
+      title: `Atención`,
+      text: `Agregar el insumo ${r.nombre_producto}`,
+      icon: 'question',
+      showCancelButton: false,
+      confirmButtonColor: '#0d6efd',
+      confirmButtonText: 'Aceptar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (this.currentUserId == null) return;
+        this.registros
+          .addInsumos(this.currentUserId, r.empid, r.matid)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+                  Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: '¡Listo!',
+                        text: 'Insumo agregado exitosamente',
+                        showConfirmButton: false,
+                        timer: 2500
+                      });
+             },
+            error: (e) =>
+              Swal.fire({
+                      position: 'center',
+                      icon: 'error',
+                      title: '¡Ups!',
+                      text: `${e}`,
+                      showConfirmButton: false,
+                      timer: 2500
+                    }),
+          });
+      }
+    })
+
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.unsubscribe();
+  }
 }

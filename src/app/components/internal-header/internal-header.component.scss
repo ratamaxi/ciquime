@@ -140,3 +140,22 @@ hr {
     display: flex;
   }
 }
+
+.user-data{
+  font-weight: 900;
+  display: block;
+    font-size: 18px;
+}
+
+.empresa-data{
+  color: white;
+  display: block;
+  margin-right: 20px;
+  font-size: 18px;
+}
+
+.border-user{
+  border-right: 2px solid #fff;
+  margin: 5px;
+    height: 26px;
+}

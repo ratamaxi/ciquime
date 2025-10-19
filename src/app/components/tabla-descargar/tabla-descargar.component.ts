@@ -1,19 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-
-type Estado = 'aprobado' | 'rechazado' | 'pendiente';
-
-interface Insumo {
-  id: string;
-  codigoAprobacion?: string;
-  nombreInterno?: string;
-  producto: string;
-  fabricante: string;
-  fechaFds: string;
-  estado: Estado;
-}
+import { Router, RouterModule } from '@angular/router';
+import { FdsDataResponse, InsumoDescarga } from 'src/app/interfaces/descargas.interface';
+import { Estado } from 'src/app/interfaces/registros.interface';
+import { RegistrosService } from 'src/app/services/registros.service';
+import {environment} from 'src/environments/environment';
 
 @Component({
   selector: 'app-tabla-descargar',
@@ -23,10 +15,24 @@ interface Insumo {
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule]
 })
 export class TablaDescargarComponent {
-  @Input() public title:string = '';
+  @Input() public title: string = '';
+  @Input() public actions: Array<'hso'|'fet'|'fds'|'etiqueta'> = []; // default
+
+  /** (opcional) Mapa materia_id -> id_encrypt (si el padre lo tiene de otro endpoint) */
+  @Input() public idEncryptByMateria: Record<string, string> | null = null;
+
+  /** Recibe los datos del padre y los convierte al modelo interno */
+  @Input() set data(value: FdsDataResponse[] | null | undefined) {
+    this.all = Array.isArray(value) ? value.map(v => this.toInsumo(v)) : [];
+    this.page = 1;
+    this.query = '';
+  }
+
   public readonly Math = Math;
- // Tabs / filtros
-  activeTab: Estado = 'aprobado';
+  private oldPortalBase = 'https://ciquime.com.ar';
+
+  // Tabs / filtros
+  activeTab: Estado = 'APROBADO';
 
   // Búsqueda y paginado
   query = '';
@@ -34,27 +40,57 @@ export class TablaDescargarComponent {
   page = 1;
 
   // Ordenamiento
-  sortKey: keyof Insumo | 'fechaFds' = 'producto';
+  sortKey: keyof InsumoDescarga | 'fechaFds' = 'producto';
   sortDir: 1 | -1 = 1;
 
-  // Mock de insumos (meté los reales cuando tengas API)
-  private all: Insumo[] = [
-    { id: '1',  producto: 'ETER DE PETROLEO', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-01-02', estado: 'aprobado' },
-    { id: '2',  producto: 'Tergazyme(R) enzyme detergent', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-02-14', estado: 'aprobado' },
-    { id: '3',  producto: 'Citrato de sodio dihidrato', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-03-05', estado: 'aprobado' },
-    { id: '4',  producto: 'Dibasic Calcium Phosphate', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-05-13', estado: 'aprobado' },
-    { id: '5',  producto: '1-HEPTANOL', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2021-07-03', estado: 'aprobado' },
-    { id: '6',  producto: 'HEPES, Free Acid, ULTROL Grade', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-02-04', estado: 'aprobado' },
-    { id: '7',  producto: 'Agar de contacto CASO + LT - ICR+ (821)', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-03-26', estado: 'aprobado' },
-    { id: '8',  producto: 'Silica fumed', fabricante: 'SIGMA ALDRICH DE ARGENTINA S.R.L.', fechaFds: '2025-04-28', estado: 'aprobado' },
+  // Dataset real
+  private all: InsumoDescarga[] = [];
 
-    // Algunos rechazados/pendientes para probar tabs
-    { id: '9',  producto: 'Acetona técnica', fabricante: 'MERCK S.A.', fechaFds: '2024-11-20', estado: 'rechazado' },
-    { id: '10', producto: 'Isopropanol', fabricante: 'MERCK S.A.', fechaFds: '2025-06-10', estado: 'pendiente' },
-  ];
+  constructor(private router: Router, private readonly registros: RegistrosService) {}
 
-  // Derivados
-  get filtered(): Insumo[] {
+  // ---------- Mapping y helpers ----------
+  /** Corrige mojibake básico (UTF-8 leído como Latin-1) */
+  private deMojibake(s: string | null | undefined): string {
+    if (!s) return '';
+    try {
+      const bytes = new Uint8Array([...s].map(ch => ch.charCodeAt(0)));
+      return new TextDecoder('utf-8').decode(bytes);
+    } catch {
+      return s;
+    }
+  }
+
+  /** yyyy-mm-dd desde ISO/Date */
+  private toYmd(d: string | Date | null | undefined): string {
+    if (!d) return '';
+    const dt = new Date(d as any);
+    if (isNaN(dt.getTime())) return '';
+    return dt.toISOString().slice(0, 10);
+  }
+
+  /** Mapea la fila del back al modelo de la tabla */
+  private toInsumo(r: FdsDataResponse): InsumoDescarga {
+    const id = String(r.materia_id);
+    const idEncFromInput = this.idEncryptByMateria?.[id] ?? null;
+    const idEncFromApi = (r as any).id_encrypt ?? null; // por si ya viene en la fila
+
+    return {
+      id,
+      idEncrypt: idEncFromInput ?? idEncFromApi ?? undefined,
+      codigoAprobacion: r.apr_code ?? undefined,
+      nombreInterno: r.extraname ?? undefined,
+      producto: this.deMojibake(r.nombre_producto),
+      fabricante: this.deMojibake(r.razonSocial),
+      fechaFds: this.toYmd(r.FDS_fecha as any),
+      estado: 'APROBADO', // por tu WHERE
+      // Guardamos el nombre de archivo crudo para el link del portal viejo (no “arreglado”)
+      fdsFile: r.fds,
+      calidadDoc: r.nombre_calidoc ?? null
+    };
+  }
+
+  // ---------- Derivados para UI ----------
+  get filtered(): InsumoDescarga[] {
     const q = this.query.trim().toLowerCase();
     return this.all
       .filter(i => i.estado === this.activeTab)
@@ -74,19 +110,61 @@ export class TablaDescargarComponent {
 
   get total(): number { return this.filtered.length; }
 
-  get pageData(): Insumo[] {
+  get pageData(): InsumoDescarga[] {
     const start = (this.page - 1) * this.pageSize;
     return this.filtered.slice(start, start + this.pageSize);
   }
 
-  // UI helpers
+  /** Codifica como espera el portal viejo para root= (FDS):
+   *  Unicode -> bytes UTF-8 -> reinterpretado como Latin-1 -> encodeURIComponent
+   */
+  private encodeForOldPortal(s: string): string {
+    const bytes = new TextEncoder().encode(s);
+    let latin1 = '';
+    for (const b of bytes) latin1 += String.fromCharCode(b);
+    return encodeURIComponent(latin1);
+  }
+
+public abrirHSO(item: InsumoDescarga): void {
+  const url = this.registros.getHsUrl(item.id); // → http(s)://.../api/utils/legacy/hs/:id
+  window.open(url, '_blank', 'noopener,noreferrer'); // abre nueva pestaña y sigue el 302
+}
+
+  // ---------- Acciones ----------
+  public descargarDocumento(item: InsumoDescarga, tipo: 'hso' | 'fet' | 'fds' = 'fds'): void {
+    const openBlank = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
+
+    // Para HSO/FET: ideal usar idEncrypt. Si no hay, usamos id crudo (solo si el server lo acepta).
+    const idParam = encodeURIComponent(item.idEncrypt ?? item.id);
+
+    if (tipo === 'hso') {
+      openBlank(`${this.oldPortalBase}/hs.php?id=${idParam}`);
+      return;
+    }
+
+    if (tipo === 'fet') {
+      openBlank(`${this.oldPortalBase}/fie.php?id=${idParam}`);
+      return;
+    }
+
+    // FDS
+    if (!item.fdsFile) {
+      alert('No hay archivo FDS asociado.');
+      return;
+    }
+    const root = this.encodeForOldPortal(item.fdsFile); // clave para “Espa%C3%83%C2%B1ol…”
+    const rfn  = encodeURIComponent(item.producto);
+    openBlank(`${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`);
+  }
+
+  // ---------- UI helpers ----------
   setTab(tab: Estado) {
     this.activeTab = tab;
     this.page = 1;
     this.query = '';
   }
 
-  toggleSort(key: keyof Insumo | 'fechaFds') {
+  toggleSort(key: keyof InsumoDescarga | 'fechaFds') {
     if (this.sortKey === key) {
       this.sortDir = this.sortDir === 1 ? -1 : 1;
     } else {
@@ -95,21 +173,18 @@ export class TablaDescargarComponent {
     }
   }
 
-  next() {
-    if (this.page * this.pageSize < this.total) this.page++;
-  }
-  prev() {
-    if (this.page > 1) this.page--;
-  }
+  next() { if (this.page * this.pageSize < this.total) this.page++; }
+  prev() { if (this.page > 1) this.page--; }
 
-  // Acciones (PLACEHOLDER)
-  editar(i: Insumo)     { alert(`Editar: ${i.producto}`); }
-  verSGA(i: Insumo)     { alert(`SGA de: ${i.producto}`); }
-  verHSO(i: Insumo)     { alert(`HSO de: ${i.producto}`); }
-  verFDS(i: Insumo)     { alert(`FDS de: ${i.producto}`); }
-  imprimirEtiqueta(i: Insumo) { alert(`Etiqueta de: ${i.producto}`); }
-  auditar(i: Insumo)    { alert(`Auditar: ${i.producto}`); }
-  eliminar(i: Insumo)   {
+  // (opcionales de demo)
+  editar(i: InsumoDescarga)           { alert(`Editar: ${i.producto}`); }
+  verSGA(i: InsumoDescarga)           { alert(`SGA de: ${i.producto}`); }
+  verHSO(i: InsumoDescarga)           { this.descargarDocumento(i, 'hso'); }
+  verFET(i: InsumoDescarga)           { this.descargarDocumento(i, 'fet'); }
+  verFDS(i: InsumoDescarga)           { this.descargarDocumento(i, 'fds'); }
+  imprimirEtiqueta(i: InsumoDescarga) { alert(`Etiqueta de: ${i.producto} (${i.calidadDoc ?? 'sin doc'})`); }
+  auditar(i: InsumoDescarga)          { alert(`Auditar: ${i.producto}`); }
+  eliminar(i: InsumoDescarga) {
     if (confirm(`Eliminar "${i.producto}"?`)) {
       this.all = this.all.filter(x => x.id !== i.id);
       this.page = 1;

@@ -171,3 +171,77 @@ input:focus {
 }
 .pager-btn[disabled] { opacity: .5; cursor: default; }
 .page-dot { font-weight: 800; color: var(--text); }
+
+/* Centrado real del header y celdas Acción */
+.data-table thead th.col-accion { text-align: center; }
+.data-table .col-accion { width: 150px; text-align: center; }
+
+/* Contenedor de iconos */
+.actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Botón de icono */
+.icon-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 4px;
+  line-height: 0;
+  cursor: pointer;
+  transition: background .15s ease, transform .04s ease;
+
+  &:hover { background: #eef6fb; }
+  &:active { transform: translateY(1px); }
+  &:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  &[disabled] {
+    opacity: .45;
+    cursor: default;
+    pointer-events: none;   /* <- deshabilitado no recibe hover */
+  }
+}
+
+/* Tamaño homogéneo */
+.icon { width: 32px; height: 32px; display: block; }
+
+/* --- SGA --- */
+.icon-sga .sga-diamond {
+  fill: none;
+  stroke: #b4bdc7;
+  stroke-width: 2.2px;
+  stroke-linejoin: round;
+  transition: stroke .15s ease;
+}
+.icon-sga .sga-text {
+  font: 800 9px/1 system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  fill: #b4bdc7;
+  letter-spacing: .6px;
+  transition: fill .15s ease;
+}
+
+/* Hover SOLO si el botón NO está disabled */
+.icon-btn:not([disabled]):hover .sga-diamond { stroke: var(--primary); }
+.icon-btn:not([disabled]):hover .sga-text    { fill: var(--primary); }
+
+/* --- Check --- */
+.icon-check .check-ring {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.6px;
+  transition: filter .15s ease;
+}
+.icon-check .check-mark {
+  fill: none;
+  stroke: #4b5563;
+  stroke-width: 2.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .15s ease;
+}
+.icon-btn:hover .check-ring { filter: drop-shadow(0 0 4px rgba(14,165,233,.4)); }
+.icon-btn:hover .check-mark { stroke: #1f2937; }

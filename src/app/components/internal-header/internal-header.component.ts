@@ -1,51 +1,56 @@
-import {CommonModule} from '@angular/common';
-import {Component, ElementRef, OnInit, Renderer2, ViewChild,} from '@angular/core';
-import {Router, RouterModule} from '@angular/router';
-import {LoginService} from '../../pages/login/login-core/login.service';
+import { CommonModule } from '@angular/common';
+import { Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { LoginService } from 'src/app/services/login.service';
+import { UsuarioService, UserData } from 'src/app/services/usuario.service';
 
 @Component({
   standalone: true,
   selector: 'app-internal-header',
   templateUrl: './internal-header.component.html',
   styleUrls: ['./internal-header.component.scss'],
-  imports: [CommonModule, RouterModule]
+  imports: [CommonModule, RouterModule],
 })
 export class InternalHeaderComponent implements OnInit {
-  @ViewChild('menuBtn') menuBtn: ElementRef | undefined;
-  @ViewChild('menuDesplegado') menuDesplegado: ElementRef | undefined;
-  public abiertoMenu: boolean = true;
+  @ViewChild('menuBtn') menuBtn?: ElementRef;
+  @ViewChild('menuDesplegado') menuDesplegado?: ElementRef;
+
+  abiertoMenu = true;
+  usuarioData: UserData | null = null;
 
   constructor(
-    private router: Router, private render2: Renderer2, private loginService: LoginService) {
+    private router: Router,
+    private render2: Renderer2,
+    private loginService: LoginService,
+    private usuarioService: UsuarioService,
+  ) {}
+
+  ngOnInit(): void {
+    // Solo para mostrar datos en el header. El id ya lo cachea el servicio.
+    this.usuarioService.user$.subscribe({
+      next: (u: UserData) => (this.usuarioData = u),
+    });
   }
 
-  public ngOnInit(): void {
+  goHome(): void {
+    this.router.navigateByUrl('panel/home');
   }
 
-  public goHome(): void {
-    this.router.navigateByUrl('panel/home').then();
-  }
-
-  public logout() {
+  logout(): void {
     this.loginService.logout();
   }
 
-  public abrirMenu(): void {
+  abrirMenu(): void {
     if (this.abiertoMenu) {
       this.abiertoMenu = false;
       this.render2.addClass(this.menuBtn!.nativeElement, 'open');
       this.render2.addClass(this.menuDesplegado!.nativeElement, 'open');
       this.render2.removeClass(this.menuDesplegado!.nativeElement, 'close');
-      return;
-    }
-    if (!this.abiertoMenu) {
+    } else {
       this.render2.removeClass(this.menuBtn!.nativeElement, 'open');
       this.render2.removeClass(this.menuDesplegado!.nativeElement, 'open');
       this.render2.addClass(this.menuDesplegado!.nativeElement, 'close');
-      setTimeout(() => {
-        this.abiertoMenu = true;
-      }, 500)
-      return;
+      setTimeout(() => (this.abiertoMenu = true), 500);
     }
   }
 }
