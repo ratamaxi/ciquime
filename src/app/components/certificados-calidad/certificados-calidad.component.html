@@ -1,0 +1,98 @@
+<section class="certificados page-certificados">
+  <header class="hero">
+    <div class="hero__info">
+      <div>
+        <h1>Gestión de Certificado de Calidad</h1>
+      </div>
+    </div>
+    <button type="button" class="hero__cta">
+      Mostrar lista de certificados por vencer
+    </button>
+  </header>
+
+  <div class="panel shadow">
+    <div class="panel__header">
+      <div class="panel__summary">
+        <span class="summary__item">
+          <span class="summary__label">Vigentes</span>
+          <span class="summary__value">{{ vigentes }}</span>
+        </span>
+        <span class="summary__item">
+          <span class="summary__label">Vencidos</span>
+          <span class="summary__value summary__value--warn">{{ vencidos }}</span>
+        </span>
+        <span class="summary__item">
+          <span class="summary__label">Total</span>
+          <span class="summary__value">{{ totalRegistros }}</span>
+        </span>
+      </div>
+
+      <div class="panel__filters">
+        <label class="filters__field">
+          <span class="filters__label">Mostrar</span>
+          <select class="filters__select" aria-label="Cantidad de registros a mostrar">
+            <option>10</option>
+            <option selected>25</option>
+            <option>50</option>
+          </select>
+          <span class="filters__label">registros</span>
+        </label>
+
+        <label class="filters__field">
+          <span class="filters__label">Buscar</span>
+          <input type="text" placeholder="Producto, fabricante…" />
+        </label>
+      </div>
+    </div>
+
+    <div class="table-wrap" role="region" aria-live="polite">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Número Interno</th>
+            <th>Producto</th>
+            <th>Fabricante</th>
+            <th>Certificado</th>
+            <th>Fecha Expedición</th>
+            <th>Fecha Expiración</th>
+            <th>Estado</th>
+            <th class="col-accion">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let registro of registros; trackBy: trackByNumero">
+            <td class="text-strong">{{ registro.numeroInterno }}</td>
+            <td>{{ registro.producto }}</td>
+            <td>{{ registro.fabricante }}</td>
+            <td>{{ registro.certificado }}</td>
+            <td>{{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
+            <td>
+              <span
+                class="estado"
+                [class.estado--vigente]="registro.estado === 'vigente'"
+                [class.estado--vencido]="registro.estado === 'vencido'"
+              >
+                {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
+              </span>
+            </td>
+            <td class="col-accion">
+              <button type="button" class="btn-link">Descargar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="panel__footer">
+      <div class="footer__summary">
+        Mostrando registros del 1 al {{ registros.length }} de un total de {{ totalRegistros }} registros
+      </div>
+      <div class="footer__pager">
+        <button type="button" class="pager-btn" disabled>Anterior</button>
+        <span class="page">Página {{ page }} de 1</span>
+        <button type="button" class="pager-btn" disabled>Siguiente</button>
+      </div>
+    </footer>
+  </div>
+</section>

@@ -1,0 +1,55 @@
+<div class="container pt-5">
+  <div class="row">
+    <div class="col">
+      <h5 class="label">Nombre Interno:</h5>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button *ngFor="let t of tabs" class="tab-btn" [class.active]="active === t.key" (click)="setActive(t.key)">
+          {{ t.label }}
+        </button>
+      </div>
+
+      <!-- Estados de carga / error -->
+      <div *ngIf="loadingTab" class="mt-2">Cargando {{ activeLabel }}…</div>
+      <div *ngIf="!loadingTab && errorTab" class="mt-2 text-danger">{{ errorTab }}</div>
+
+      <!-- Contenido por pestaña -->
+      <ng-container [ngSwitch]="active">
+
+        <!-- Peligros por SGA -->
+        <ng-container *ngSwitchCase="'peligro'">
+          <app-tabla-peligro *ngIf="fichaPeligro as fp" [ficha]="fp">
+          </app-tabla-peligro>
+        </ng-container>
+
+        <!-- EPP y Composición -->
+        <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp!">
+          >
+          >
+        </app-tabla-epp>
+
+        <!-- NFPA y Transporte -->
+        <app-tabla-nfpa *ngSwitchCase="'nfpa'" [ficha]="nfpaData!">
+        </app-tabla-nfpa>
+
+        <!-- Tratamiento -->
+        <app-tabla-tratamiento *ngSwitchCase="'trat'" [ficha]="tratamientoData!">
+        </app-tabla-tratamiento>
+
+        <!-- Emergencia -->
+        <app-tabla-emergencia *ngSwitchCase="'emerg'" [ficha]="emergenciaData!">
+        </app-tabla-emergencia>
+
+        <!-- Almacenamiento -->
+        <app-tabla-almacenamiento *ngSwitchCase="'alm'" [ficha]="almacenamientoData!">
+        </app-tabla-almacenamiento>
+
+        <!-- Fallback -->
+        <div class="card note" *ngSwitchDefault>
+          <p>Contenido pendiente para esta pestaña.</p>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

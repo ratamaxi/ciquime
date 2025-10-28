@@ -1,0 +1,86 @@
+// src/app/services/descargas.service.ts
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+import { SgaPeligroApi } from '../interfaces/descargas.interface';
+
+type SgaTab = 'peligros' | 'epp' | 'nfpa' | 'tratamiento' | 'emergencia' | 'almacenamiento';
+
+@Injectable({ providedIn: 'root' })
+export class DescargasService {
+  private base_url: string = environment.baseUrl;
+
+  private descargas = `${this.base_url}/descargas`;
+  private utils = `${this.base_url}/utils/legacy`;
+
+  constructor(private http: HttpClient) {}
+
+  // ---------- SGA (por pestaña) ----------
+  getSgaPeligros(materiaId: number): Observable<any> {
+    return this.http.get<SgaPeligroApi>(`${this.descargas}/sga/${materiaId}/peligros`);
+  }
+  getSgaEpp(materiaId: number): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/epp`);
+  }
+  getSgaNfpa(materiaId: number): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/nfpa`);
+  }
+  getSgaTratamiento(materiaId: number): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/tratamiento`);
+  }
+  getSgaEmergencia(materiaId: number): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/emergencia`);
+  }
+  getSgaAlmacenamiento(materiaId: number): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/almacenamiento`);
+  }
+
+  /** Versión “dispatcher” si usás /sga/:materiaId?tab=peligros|epp|... */
+  getSgaByTab(materiaId: number, tab: SgaTab): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/sga/${materiaId}`, { params: { tab } });
+  }
+
+  // ---------- HSO / FET (redirigen al portal viejo desde tu backend) ----------
+  /** Devuelve la URL final (Location) para abrir la HSO */
+  getLegacyHSOUrl(materiaId: number): Observable<string> {
+    return this.http.get(`${this.utils}/hs/${materiaId}`, {
+      observe: 'response',
+      responseType: 'text' as 'json'
+    }).pipe(
+      map((resp: HttpResponse<any>) => {
+        const loc = resp.headers.get('Location');
+        if (!loc) throw new Error('No se recibió Location en la respuesta');
+        return loc;
+      })
+    );
+  }
+
+  /** Conveniencia: resuelve la URL y la abre en una nueva pestaña */
+  openLegacyHSO(materiaId: number): void {
+    this.getLegacyHSOUrl(materiaId).subscribe({
+      next: (url) => window.open(url, '_blank', 'noopener,noreferrer'),
+      error: (e) => console.error('HSO error', e)
+    });
+  }
+
+  /** (Opcional) FET si implementaste /legacy/fet/:materiaId en tu backend */
+  getLegacyFETUrl(materiaId: number): Observable<string> {
+    return this.http.get(`${this.utils}/fet/${materiaId}`, {
+      observe: 'response',
+      responseType: 'text' as 'json'
+    }).pipe(
+      map((resp: HttpResponse<any>) => {
+        const loc = resp.headers.get('Location');
+        if (!loc) throw new Error('No se recibió Location en la respuesta');
+        return loc;
+      })
+    );
+  }
+  openLegacyFET(materiaId: number): void {
+    this.getLegacyFETUrl(materiaId).subscribe({
+      next: (url) => window.open(url, '_blank', 'noopener,noreferrer'),
+      error: (e) => console.error('FET error', e)
+    });
+  }
+}

@@ -1,0 +1,41 @@
+.label { margin-bottom: .5rem; font-weight: 800; color: #1f2937; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  background-color: #ffffff;
+  color: #3b82f6;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  height: 45px;
+  padding: 0 16px;
+  transition: 0.2s ease;
+  font-weight: 800;
+  box-shadow: 0 0 0 1px #e5e7eb inset;
+
+  &:hover {
+    background-color: #3b82f6;
+    color: #fff;
+    box-shadow: 0 0 0 5px #3b83f65f;
+  }
+  &.active {
+    background: #fff;
+    color: #111827;
+    box-shadow: 0 2px 0 rgba(0,0,0,.02), 0 0 0 2px #e5e7eb inset;
+  }
+}
+
+/* placeholder genérico */
+.card.note {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+  padding: 16px;
+  color: #6b7280;
+  margin-top: 8px;
+}

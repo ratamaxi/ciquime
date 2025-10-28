@@ -17,6 +17,12 @@
       [mostrarBarras]="['aprobados','pendientes']">
     </app-estadisticas>
 
+      <app-certificados-resumen
+      class="mb-3"
+      [certificados]="certificadosResumen"
+      [limite]="4">
+    </app-certificados-resumen>
+
     <app-actividades-item
       [items]="misActividades"
       [showVerMas]="false">

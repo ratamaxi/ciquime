@@ -16,6 +16,8 @@ import { DescargaFetComponent } from './pages/descarga-fet/descarga-fet.componen
 import { DescargaHsoComponent } from './pages/descarga-hso/descarga-hso.component';
 import { DescargaFdsComponent } from './pages/descarga-fds/descarga-fds.component';
 import { DescargaEtiquetaComponent } from './pages/descarga-etiqueta/descarga-etiqueta.component';
+import { SgaSeleccionadoComponent } from './pages/sga/sga-seleccionado/sga-seleccionado.component';
+import { CertificadosCalidadComponent } from './components/certificados-calidad/certificados-calidad.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -31,7 +33,7 @@ const routes: Routes = [
       { path: 'ayuda-video', component: AyudaVideosComponent },
       { path: 'data-user', component: DataUsuarioComponent },
       { path: 'sga', component: SgaComponent },
-      { path: 'sga/:id', component: SgaComponent },
+      { path: 'sga/:id', component: SgaSeleccionadoComponent },
       { path: 'buscar-insumos', component: BuscarInsumoComponent },
       { path: 'registro-insumo', component: RegistroInsumoComponent },
       { path: 'ver-insumo', component: VerInsumoComponent },
@@ -41,6 +43,8 @@ const routes: Routes = [
       { path: 'descarga-fds', component: DescargaFdsComponent },
       { path: 'etiquetas', component: EtiquetasComponent },
       { path: 'descarga-etiqueta', component: DescargaEtiquetaComponent },
+      {path: 'certificados-calidad', component: CertificadosCalidadComponent},
+
     ],
   },
   { path: '**', redirectTo: 'login' },

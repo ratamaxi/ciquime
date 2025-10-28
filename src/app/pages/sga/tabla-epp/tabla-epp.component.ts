@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 
-export type EppIcon = 'gafas' | 'guantes' | 'respirador';
+export type EppIcon = 'gafas' | 'guantes' | 'respirador' | 'careta' | 'botas' | 'ropa'| 'auditiva';
 
 export interface TablaEppFicha {
   productName: string;
   supplier: string;
   rnpq?: string; // opcional
-  epp: EppIcon[]; // íconos a mostrar
+  epp: any;
   componentes: Array<{ nombre: string; cas: string; porcentaje: string }>;
 }
 

@@ -1,0 +1,41 @@
+<div class="card">
+  <div class="header">
+    <h3 class="title">{{ titulo }}</h3>
+
+    <div class="chips" aria-hidden="true">
+      <span class="chip chip--ok">Vigentes <strong>{{ resumenVigentes }}</strong></span>
+      <span class="chip chip--warn">Vencidos <strong>{{ resumenVencidos }}</strong></span>
+    </div>
+  </div>
+
+  <div role="table" aria-label="Listado de certificados próximos a vencer">
+    <div class="table__header mb-1" role="row">
+      <span class="th producto" role="columnheader">Producto</span>
+      <span class="th estado" role="columnheader">Estado</span>
+    </div>
+
+    <ng-container *ngIf="certificadosFiltrados.length; else vacio">
+      <div
+        class="table__row mb-2"
+        role="row"
+        *ngFor="let certificado of certificadosFiltrados; trackBy: trackByCertificado"
+      >
+        <span class="td producto" role="cell" [title]="certificado.producto">
+          {{ certificado.producto }}
+        </span>
+        <span
+          class="td estado"
+          role="cell"
+          [class.estado--vigente]="esVigente(certificado)"
+          [class.estado--vencido]="esVencido(certificado)"
+        >
+          {{ esVigente(certificado) ? 'Vigente' : 'Vencido' }}
+        </span>
+      </div>
+    </ng-container>
+  </div>
+
+  <ng-template #vacio>
+    <div class="empty" role="note">Sin certificados registrados.</div>
+  </ng-template>
+</div>

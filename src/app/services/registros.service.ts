@@ -197,7 +197,7 @@ export class RegistrosService {
   }
 
   public modificarInsumo(body: EditarInsumoRequest): Observable<void> {
-    const apiUrl = `${this.base_url}/modificar/insumo/${this.idUsuario}`;
+    const apiUrl = `${this.base_url}/registros/modificar/insumo/${this.idUsuario}`;
     return this.http.put<void>(apiUrl, body);
   }
 }

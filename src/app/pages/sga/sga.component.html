@@ -1,35 +1,137 @@
-<div class="container pt-5">
-  <div class="row">
-    <div class="col">
-      <h5 class="label">Nombre Interno:</h5>
+<div class="px-5">
+  <div class="page px-5 pt-5">
+    <h3>Registro/Actualización de Insumo</h3>
 
-      <div class="tabs">
-        <button
-          *ngFor="let t of tabs"
-          class="tab-btn"
-          [class.active]="active === t.key"
-          (click)="active = t.key">
-          {{ t.label }}
-        </button>
+    <!-- Barra de búsqueda -->
+    <div class="search-card mt-3">
+      <form (ngSubmit)="buscar()" class="search-grid">
+        <label class="field">
+          <span class="label">Nombre del insumo</span>
+          <input
+            type="text"
+            [(ngModel)]="filtroNombre"
+            name="nombre"
+            placeholder="Ej: Propylene Glycol"
+            (keyup.enter)="buscar()"
+          />
+        </label>
+
+        <label class="field">
+          <span class="label">Nombre del fabricante</span>
+          <input
+            type="text"
+            [(ngModel)]="filtroFabricante"
+            name="fabricante"
+            placeholder="Ej: MERCK S.A."
+            (keyup.enter)="buscar()"
+          />
+        </label>
+
+        <div class="actions pb-2">
+          <button type="submit" class="btn btn-primary" [disabled]="loading">Buscar</button>
+          <button type="button" class="btn btn-ghost" (click)="limpiar()" [disabled]="loading">Limpiar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Estados -->
+    <div *ngIf="loading" class="mt-2">Cargando…</div>
+    <div *ngIf="!loading && error" class="mt-2 text-danger">{{ error }}</div>
+
+    <!-- Tabla -->
+    <div class="table-card" *ngIf="!error">
+      <div class="table-wrap" role="region" aria-live="polite">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th
+                tabindex="0"
+                (click)="sortBy('producto')"
+                (keyup.enter)="sortBy('producto')"
+                [attr.aria-sort]="sortKey==='producto' ? (sortDir===1?'ascending':'descending') : 'none'"
+              >
+                Producto
+                <span class="sort" [class.active]="sortKey==='producto'" [class.desc]="sortKey==='producto' && sortDir===-1"></span>
+              </th>
+              <th
+                tabindex="0"
+                (click)="sortBy('fabricante')"
+                (keyup.enter)="sortBy('fabricante')"
+                [attr.aria-sort]="sortKey==='fabricante' ? (sortDir===1?'ascending':'descending') : 'none'"
+              >
+                Fabricante
+                <span class="sort" [class.active]="sortKey==='fabricante'" [class.desc]="sortKey==='fabricante' && sortDir===-1"></span>
+              </th>
+              <th
+                tabindex="0"
+                (click)="sortBy('revFDS')"
+                (keyup.enter)="sortBy('revFDS')"
+                [attr.aria-sort]="sortKey==='revFDS' ? (sortDir===1?'ascending':'descending') : 'none'"
+              >
+                Rev.FDS
+                <span class="sort" [class.active]="sortKey==='revFDS'" [class.desc]="sortKey==='revFDS' && sortDir===-1"></span>
+              </th>
+              <th
+                tabindex="0"
+                (click)="sortBy('fechaFDS')"
+                (keyup.enter)="sortBy('fechaFDS')"
+                [attr.aria-sort]="sortKey==='fechaFDS' ? (sortDir===1?'ascending':'descending') : 'none'"
+              >
+                Fecha.FDS
+                <span class="sort" [class.active]="sortKey==='fechaFDS'" [class.desc]="sortKey==='fechaFDS' && sortDir===-1"></span>
+              </th>
+              <th class="col-accion">Acción</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let r of pageItems; trackBy: trackByRow">
+              <td class="text-strong" [title]="r.producto">{{ r.producto }}</td>
+              <td [title]="r.fabricante">{{ r.fabricante }}</td>
+              <td>{{ r.revFDS }}</td>
+              <td>{{ r.fechaFDS | date:'dd/MM/yyyy' }}</td>
+             <td class="col-accion">
+  <div class="actions-cell">
+
+    <!-- SGA -->
+    <button
+      type="button"
+      class="icon-btn"
+      title="Ver FDS (SGA)"
+      aria-label="Ver FDS (SGA)"
+      [routerLink]="['/panel/sga', r.id]"
+    >
+
+      <svg class="icon icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
+        <!-- rombo con más aire -->
+        <polygon points="16,5 27,16 16,27 5,16" class="sga-diamond"></polygon>
+        <!-- texto centrado perfecto -->
+        <text x="16" y="17" text-anchor="middle" dominant-baseline="middle" class="sga-text">SGA</text>
+      </svg>
+    </button>
+
+  </div>
+</td>
+
+            </tr>
+
+            <tr *ngIf="!loading && pageItems.length === 0">
+              <td class="empty" colspan="5">Ningún dato disponible en esta tabla</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <ng-container [ngSwitch]="active">
-        <!-- Peligros por SGA -->
-        <app-tabla-peligro *ngSwitchCase="'peligro'"></app-tabla-peligro>
-
-        <!-- EPP y Composición -->
-        <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp"></app-tabla-epp>
-        <app-tabla-nfpa *ngSwitchCase="'nfpa'"></app-tabla-nfpa>
-        <app-tabla-tratamiento *ngSwitchCase="'trat'"></app-tabla-tratamiento>
-        <app-tabla-emergencia *ngSwitchCase="'emerg'"></app-tabla-emergencia>
-        <app-tabla-almacenamiento *ngSwitchCase="'alm'"></app-tabla-almacenamiento>
-
-
-        <!-- Resto de pestañas (placeholder) -->
-        <div class="card note" *ngSwitchDefault>
-          <p>Contenido pendiente para esta pestaña.</p>
+      <!-- Footer tabla (sin total del servidor) -->
+      <div class="table-footer">
+        <div class="summary">
+          Mostrando {{ showingFrom }}–{{ showingTo }} (página {{ page }})
         </div>
-      </ng-container>
+        <div class="pager">
+          <button class="pager-btn" (click)="prev()" [disabled]="page===1 || loading">Anterior</button>
+          <button class="pager-btn" (click)="next()" [disabled]="pageItems.length < pageSize || loading">Siguiente</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

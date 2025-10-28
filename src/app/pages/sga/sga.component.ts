@@ -1,75 +1,196 @@
-import { Component } from '@angular/core';
-import { SgaFicha, TablaPeligroComponent } from './tabla-peligro/tabla-peligro.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TablaEppComponent, TablaEppFicha } from './tabla-epp/tabla-epp.component';
-import { TablaNfpaComponent } from './tabla-nfpa/tabla-nfpa.component';
-import { TablaTratamientoComponent } from './tabla-tratamiento/tabla-tratamiento.component';
-import { TablaEmergenciaComponent } from './tabla-emergencia/tabla-emergencia.component';
-import { TablaAlmacenamientoComponent } from './tabla-almacenamiento/tabla-almacenamiento.component';
+import { Subject, takeUntil } from 'rxjs';
+import { BuscarInsumoUI, BuscarInsumoResponseItem } from 'src/app/interfaces/registros.interface';
+import { RegistrosService } from 'src/app/services/registros.service';
+import { UsuarioService } from 'src/app/services/usuario.service';
+import Swal from 'sweetalert2';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { DescargasService } from 'src/app/services/descargas.service';
+import { RouterModule } from '@angular/router';
 
+type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 @Component({
   selector: 'app-sga',
   templateUrl: './sga.component.html',
   styleUrls: ['./sga.component.scss'],
   standalone: true,
-  imports: [TablaPeligroComponent, CommonModule, TablaEppComponent, TablaNfpaComponent, TablaTratamientoComponent, TablaEmergenciaComponent, TablaAlmacenamientoComponent]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule]
 })
-export class SgaComponent {
+export class SgaComponent  implements OnInit, OnDestroy {
+  private destroy$: Subject<void> = new Subject();
+  // filtros
+  filtroNombre = '';
+  filtroFabricante = '';
 
-  active: 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm' = 'peligro';
+  // estado
+  loading = false;
+  error: string | null = null;
 
-  tabs = [
-    { key: 'peligro', label: 'Peligros por SGA' },
-    { key: 'epp',     label: 'EPP y Composición' },
-    { key: 'nfpa',    label: 'NFPA y Transporte' },
-    { key: 'trat',    label: 'Tratamiento' },
-    { key: 'emerg',   label: 'Emergencia' },
-    { key: 'alm',     label: 'Almacenamiento' },
-  ] as const;
+  // resultados + paginación
+  pageItems: any[] = [];
+  pageSize = 10;
+  page = 1;
 
-  // Mock para la pestaña EPP
-  fichaEpp: TablaEppFicha = {
-    productName: '1,4-DIOXANO',
-    supplier: 'MERCK S.A.',
-    rnpq: '',
-    epp: ['gafas','guantes','respirador'],
-    componentes: [
-      { nombre: '1,4-Dioxano', cas: '123-91-1', porcentaje: '100%' }
-    ]
-  };
+  // orden
+  sortKey: SortKey = 'producto';
+  sortDir: 1 | -1 = 1; // 1 asc, -1 desc
 
-  // Mock para la ficha SGA (podés reemplazar desde API)
-  ficha: SgaFicha = {
-    productName: '1,4-DIOXANO',
-    supplier: 'MERCK S.A.',
-    displayVisibility: 'Publico',
-    dataSource: 'FDS Proveedor',
-    pictograms: ['llama','peligro-salud','exclamacion'],
-    signalWord: 'PELIGRO',
-    hazardStatements: [
-      'H225 - Líquido y vapores muy inflamables.',
-      'H319 - Provoca irritación ocular grave.',
-      'H335 - Puede irritar las vías respiratorias.',
-      'H350 - Puede provocar cáncer.'
-    ],
-    precautionaryStatements: [
-        'P201 - Procurarse las instrucciones antes del uso.',
-      'P202 - No manipular antes de haber leído y comprendido todas las instrucciones de seguridad.',
-      'P210 - Mantener alejado de fuentes de calor, superficies calientes, chispas, llamas al descubierto y otras fuentes de ignición. No fumar.',
-      'P233 - Mantener el recipiente herméticamente cerrado.',
-      'P261 - Evitar respirar el polvo, el humo, el gas, la niebla, los vapores o el aerosol.',
-      'P264 - Lavarse cuidadosamente tras la manipulación.',
-      'P271 - Utilizar sólo al aire libre o en un lugar bien ventilado.',
-      'P280 - Usar guantes, ropa y equipo de protección para los ojos y la cara.',
-      'P303 + P361 + P353 - EN CASO DE CONTACTO CON LA PIEL(o el pelo): Quitar inmediatamente toda la ropa contaminada.Enjuagar la piel con agua o ducharse.',
-      'P304 + P340 - EN CASO DE INHALACIÓN: Transportar a la persona al aire libre y mantenerla en una posición que le facilite la respiración.',
-      'P305 + P351 + P338 - EN CASO DE CONTACTO CON LOS OJOS: Enjuagar con agua cuidadosamente durante varios minutos.Quitar las lentes de contacto, cuando estén presentes y pueda hacerse con facilidad.Proseguir con el lavado.',
-      'P308 + P313 - EN CASO DE exposición demostrada o supuesta: Consultar a un médico.',
-      'P312 - Llamar a un CENTRO DE TOXICOLOGÍA o a un médico si la persona se encuentra mal.',
-      'P337 + P313 - SI LA IRRITACIÓN OCULAR PERSISTE: Consultar a un médico.',
-      'P370 + P378 - EN CASO DE INCENDIO: Utilizar niebla de agua, espuma AR - AFFF, polvo químico seco o dióxido de carbono(CO2) para la extinción.',
-      'P403 + P233 - Almacenar en lugar bien ventilado.Mantener el recipiente herméticamente cerrado.',
-      'P405 - Guardar bajo llave.',
-    ]
-  };
+  // user
+  private currentUserId: number | null = null;
+
+  constructor(
+    private registros: RegistrosService,
+    private users: UsuarioService,
+    private descargas: DescargasService
+
+  ) { }
+
+  public ngOnInit(): void {
+    // Espero el userId y disparo primera carga
+    this.users.userId$.subscribe((id) => {
+      this.currentUserId = id;
+      this.page = 1;
+      this.buscar();
+    });
+  }
+
+  // --- Acciones UI ---
+  public buscar(): void {
+    if (!this.currentUserId) return;
+    this.loading = true;
+    this.error = null;
+
+    const offset = (this.page - 1) * this.pageSize;
+
+    this.registros.buscarInsumosDisponibles(this.currentUserId, {
+      insumo: this.filtroNombre.trim(),
+      fabricante: this.filtroFabricante.trim(),
+      limit: this.pageSize,
+      offset
+    }).subscribe({
+      next: (items: any) => {
+        this.pageItems = items ?? [];
+        this.applySort();
+        this.loading = false;
+      },
+      error: () => {
+        this.error = 'No se pudieron cargar los insumos.';
+        this.pageItems = [];
+        this.loading = false;
+      }
+    });
+  }
+
+  public limpiar(): void {
+    this.filtroNombre = '';
+    this.filtroFabricante = '';
+    this.page = 1;
+    this.buscar();
+  }
+
+  public sortBy(key: SortKey): void {
+    if (this.sortKey === key) {
+      this.sortDir = this.sortDir === 1 ? -1 : 1;
+    } else {
+      this.sortKey = key;
+      this.sortDir = 1;
+    }
+    this.applySort();
+  }
+
+  public prev(): void {
+    if (this.page > 1 && !this.loading) {
+      this.page--;
+      this.buscar();
+    }
+  }
+
+  public next(): void {
+    // si la página vino “llena”, asumo que hay otra página
+    if (this.pageItems.length === this.pageSize && !this.loading) {
+      this.page++;
+      this.buscar();
+    }
+  }
+
+  private applySort(): void {
+    const key = this.sortKey;
+    const dir = this.sortDir;
+
+    this.pageItems = [...this.pageItems].sort((a, b) => {
+      let va: any = a[key];
+      let vb: any = b[key];
+
+      if (key === 'fechaFDS') {
+        // ordenar por fecha real
+        const da = va ? new Date(va).getTime() : 0;
+        const db = vb ? new Date(vb).getTime() : 0;
+        return (da - db) * dir;
+      }
+
+      va = (va ?? '').toString().toLowerCase();
+      vb = (vb ?? '').toString().toLowerCase();
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }
+
+  public get showingFrom(): number {
+    return this.pageItems.length === 0 ? 0 : (this.page - 1) * this.pageSize + 1;
+  }
+
+  public get showingTo(): number {
+    return (this.page - 1) * this.pageSize + this.pageItems.length;
+  }
+
+  public trackByRow = (_: number, r: BuscarInsumoUI) =>
+    `${r.producto}|${r.fabricante}|${r.revFDS}|${r.fechaFDS}`;
+
+  public agregar(r: BuscarInsumoResponseItem) {
+    console.log(r)
+    Swal.fire({
+      title: `Atención`,
+      text: `Agregar el insumo ${r.nombre_producto}`,
+      icon: 'question',
+      showCancelButton: false,
+      confirmButtonColor: '#0d6efd',
+      confirmButtonText: 'Aceptar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (this.currentUserId == null) return;
+        this.registros
+          .addInsumos(this.currentUserId, r.empid, r.matid)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
+                  Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: '¡Listo!',
+                        text: 'Insumo agregado exitosamente',
+                        showConfirmButton: false,
+                        timer: 2500
+                      });
+             },
+            error: (e) =>
+              Swal.fire({
+                      position: 'center',
+                      icon: 'error',
+                      title: '¡Ups!',
+                      text: `${e}`,
+                      showConfirmButton: false,
+                      timer: 2500
+                    }),
+          });
+      }
+    })
+
+  }
+
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.unsubscribe();
+  }
 }

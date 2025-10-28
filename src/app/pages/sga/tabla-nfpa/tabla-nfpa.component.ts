@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { NfpaTransporteFicha } from 'src/app/interfaces/descargas.interface';
 
 export interface NfpaFicha {
   productName: string;
@@ -28,26 +29,11 @@ export interface NfpaFicha {
   imports: [CommonModule]
 })
 export class TablaNfpaComponent {
-  @Input() ficha: NfpaFicha = {
-    productName: '1,4-DIOXANO',
-    supplier: 'MERCK S.A.',
-    dataSource: 'FDS Proveedor',
-    transportClass: '3',
-    nfpa: {
-      salud: 2,
-      inflamabilidad: 3,
-      reactividad: 0,
-      otros: '-',
-    },
-    transporte: {
-      codigoRiesgo: '33',
-      numeroONU: '1165',
-      grupoEmbalaje: 'II',
-    },
-    fetDocs: [{ label: 'A' }, { label: 'B' }],
-  };
+  @Input() ficha!: NfpaTransporteFicha;
 
-  onOpenFET(doc: { label: string; href?: string }) {
-    if (doc.href) window.open(doc.href, '_blank');
+  // Si querés mostrar “sin clase” cuando clasImg sea '0'
+  get hasTransportClass(): boolean {
+    return !!this.ficha?.transporte?.clasImg && this.ficha.transporte.clasImg !== '0';
   }
+
 }
