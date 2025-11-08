@@ -135,3 +135,29 @@ export interface SgaFicha {
   precautionaryStatements: string[]; // textos en español
 }
 
+export type EstadoCertificado = 'vigente' | 'vencido';
+
+export type EstadoRegistroCertificado = 'APROBADO' | 'EN PROCESO' | 'OBSERVADO';
+
+export interface DocumentoCalidad {
+  id: string;
+  nombre: string;
+  vencimiento: string | null;
+}
+
+export interface CertificadoCalidad {
+  numeroInterno: string;
+  producto: string;
+  fabricante: string;
+  certificado: string;
+  fechaExpedicion: string;
+  fechaExpiracion: string;
+  estado: EstadoCertificado;
+  numeroOriginal?: string;
+  estadoRegistro?: EstadoRegistroCertificado;
+  aniosDeposito?: number;
+  certificadoPorDocumento?: boolean;
+  vencimientoCertificado?: string | null;
+  documentos?: DocumentoCalidad[];
+}
+

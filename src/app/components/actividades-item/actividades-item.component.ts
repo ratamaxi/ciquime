@@ -17,14 +17,7 @@ export interface ActividadItem {
 })
 export class ActividadesItemComponent {
   @Input() titulo = 'Últimas actividades';
-  @Input() items: ActividadItem[] = [
-    { texto: 'Cambio de normas YPF' },
-    { texto: 'Rechazo normativa' },
-    { texto: 'Cambio de estado, Pendiente' },
-    { texto: 'Cambio de estado, Pendiente' },
-    { texto: 'Aceptacion norma' },
-    { texto: 'Cambio de normas YPF' },
-  ];
+  @Input() items: ActividadItem[] = [];
 
   /** Si querés un botón "Ver más..." al pie */
   @Input() showVerMas = false;

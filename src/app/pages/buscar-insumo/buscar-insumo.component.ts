@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { BuscarInsumoResponseItem, BuscarInsumoUI } from 'src/app/interfaces/registros.interface';
+import { AgregarInsumoAUsuario, BuscarInsumoResponseItem, BuscarInsumoUI } from 'src/app/interfaces/registros.interface';
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
 import Swal from "sweetalert2";
@@ -12,12 +13,13 @@ type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 @Component({
   selector: 'app-buscar-insumo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './buscar-insumo.component.html',
   styleUrls: ['./buscar-insumo.component.scss'],
 })
 export class BuscarInsumoComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject();
+  private idEmpresa: string = localStorage.getItem('id_empresa') ?? '';
   // filtros
   filtroNombre = '';
   filtroFabricante = '';
@@ -45,7 +47,7 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     // Espero el userId y disparo primera carga
-    this.users.userId$.subscribe((id) => {
+    this.users.userId$.pipe(takeUntil(this.destroy$)).subscribe((id) => {
       this.currentUserId = id;
       this.page = 1;
       this.buscar();
@@ -57,7 +59,6 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
     if (!this.currentUserId) return;
     this.loading = true;
     this.error = null;
-
     const offset = (this.page - 1) * this.pageSize;
 
     this.registros.buscarInsumosDisponibles(this.currentUserId, {
@@ -163,11 +164,23 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
     }).then((result) => {
       if (result.isConfirmed) {
         if (this.currentUserId == null) return;
+        const body:AgregarInsumoAUsuario = {
+          materia: r.id.toString(),
+          empresa: this.idEmpresa,
+          usuario: this.currentUserId.toString()
+        }
         this.registros
-          .addInsumos(this.currentUserId, r.empid, r.matid)
+          .agregarInsumoUsuario(body)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
+                    this.pageItems = this.pageItems.filter(x => x.id !== r.id);
+
+          // (Opcional) si quedó vacía la página y hay páginas previas, retroceder una y recargar
+          if (this.pageItems.length === 0 && this.page > 1) {
+            this.page--;
+            this.buscar();
+          }
                   Swal.fire({
                         position: 'center',
                         icon: 'success',

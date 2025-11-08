@@ -46,28 +46,21 @@
 
 /* Línea de transporte (CLASE + FET) */
 .transport-line {
-  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* empuja los FET a la derecha */
+  gap: 24px;
+  flex-wrap: wrap;
+
   .class-box { display: inline-flex; align-items: center; gap: 10px; }
 }
 
-/* Rombo / llama / número */
+/* Rombo / número */
 .diamond { position: relative; width: 82px; height: 82px; display: inline-block; }
 .rombo { position: absolute; inset: 0; }
-.flame {
-  position: absolute; inset: 0;
-  width: 44%; height: 44%;
-  margin: auto; fill: #c0392b;
-}
 .num {
   position: absolute; left: 0; right: 0; bottom: 6px;
   text-align: center; font-weight: 900; font-size: 18px; color: #111;
-}
-
-.icon {
-  position: absolute; inset: 0;
-  width: 60%; height: 60%;
-  margin: auto; fill: #c0392b;
-  right: -15px;
 }
 
 /* FET docs (iconitos naranja con A/B) */
@@ -106,21 +99,14 @@
 .no-pad { padding: 0 !important; }
 
 /* NFPA a la izquierda */
-.nfpa-table {
-  border-right: 1px solid #e6e6e6;
-}
+.nfpa-table { border-right: 1px solid #e6e6e6; }
 .nfpa-row {
   display: grid; grid-template-columns: 1fr 64px;
-  align-items: center;
-  min-height: 44px;
+  align-items: center; min-height: 44px;
   &:not(:last-child) { border-bottom: 1px solid #e6e6e6; }
 }
-.nfpa-label {
-  color: #fff; font-weight: 800; letter-spacing: .3px; padding: 10px 12px;
-}
-.nfpa-score {
-  text-align: center; font-weight: 900; color: #111; background: #fff;
-}
+.nfpa-label { color: #fff; font-weight: 800; letter-spacing: .3px; padding: 10px 12px; }
+.nfpa-score { text-align: center; font-weight: 900; color: #111; background: #fff; }
 
 /* Colores NFPA */
 .nfpa-row.blue   .nfpa-label { background: var(--nfpa-blue); }
@@ -148,6 +134,3 @@
   .row.split .cell { padding: 0; }
   .transp-table .t-row { grid-template-columns: 1fr 1fr; }
 }
-
-.flame { position: absolute; inset: 0; }
-

@@ -10,17 +10,16 @@
     <button
       class="tile"
       *ngFor="let t of capacidadTiles; trackBy: trackById"
-      (click)="onSelect(t.id)"
       type="button"
     >
       <span class="tile-topbar"></span>
       <span class="tile-icon">
         <ng-container [ngSwitch]="t.icon">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'frasco'" style="width: 100px;" src="../../../assets/img/botella1.png">
-          <img  (click)="imprimirEtiquetas()" *ngSwitchCase="'bidon'" style="width: 100px;" src="../../../assets/img/botella2.png">
-          <img  (click)="imprimirEtiquetas()" *ngSwitchCase="'tambor'" style="width: 100px;" src="../../../assets/img/botella3.png">
-          <img  (click)="imprimirEtiquetas()" *ngSwitchCase="'ibc'" style="width: 100px;" src="../../../assets/img/botella4.png">
-          <img  (click)="imprimirEtiquetas()" *ngSwitchCase="'cartel'" style="width: 100px;" src="../../../assets/img/botella5.png">
+          <img (click)="openEtiquetaNormal('3l')"  *ngSwitchCase="'frasco'" style="width: 100px;" src="../../../assets/img/botella1.png">
+          <img  (click)="openEtiquetaNormal('50l')" *ngSwitchCase="'bidon'" style="width: 100px;" src="../../../assets/img/botella2.png">
+          <img  (click)="openEtiquetaNormal('500l')" *ngSwitchCase="'tambor'" style="width: 100px;" src="../../../assets/img/botella3.png">
+          <img  (click)="openEtiquetaNormal('mas500l')" *ngSwitchCase="'ibc'" style="width: 100px;" src="../../../assets/img/botella4.png">
+          <img  (click)="openEtiquetaNormal('cartel')" *ngSwitchCase="'cartel'" style="width: 100px;" src="../../../assets/img/botella5.png">
         </ng-container>
       </span>
       <span class="tile-title">{{ t.title }}</span>
@@ -35,17 +34,16 @@
     <button
       class="tile"
       *ngFor="let t of formatoTiles; trackBy: trackById"
-      (click)="onSelect(t.id)"
       type="button"
     >
       <span class="tile-topbar"></span>
       <span class="tile-icon">
         <ng-container [ngSwitch]="t.icon">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'frasco'" style="width: 100px;" src="../../../assets/img/botella1.png">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'bidon'" style="width: 100px;" src="../../../assets/img/botella2.png">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'tambor'" style="width: 100px;" src="../../../assets/img/botella3.png">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'ibc'" style="width: 100px;" src="../../../assets/img/botella4.png">
-          <img (click)="imprimirEtiquetas()"  *ngSwitchCase="'cartel'" style="width: 100px;" src="../../../assets/img/botella5.png">
+          <img (click)="openEtiquetaNormal('xs')"  *ngSwitchCase="'frasco'" style="width: 100px;" src="../../../assets/img/botella1.png">
+          <img (click)="openEtiquetaNormal('s')"  *ngSwitchCase="'bidon'" style="width: 100px;" src="../../../assets/img/botella2.png">
+          <img (click)="openEtiquetaNormal('m')"  *ngSwitchCase="'tambor'" style="width: 100px;" src="../../../assets/img/botella3.png">
+          <img (click)="openEtiquetaNormal('l')"  *ngSwitchCase="'ibc'" style="width: 100px;" src="../../../assets/img/botella4.png">
+          <img (click)="openEtiquetaNormal('xl')"  *ngSwitchCase="'cartel'" style="width: 100px;" src="../../../assets/img/botella5.png">
         </ng-container>
       </span>
       <span class="tile-title">{{ t.title }}</span>

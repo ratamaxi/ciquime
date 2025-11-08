@@ -24,26 +24,18 @@
         </ng-container>
 
         <!-- EPP y Composición -->
-        <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp!">
-          >
-          >
-        </app-tabla-epp>
-
+        <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp!"/>
         <!-- NFPA y Transporte -->
-        <app-tabla-nfpa *ngSwitchCase="'nfpa'" [ficha]="nfpaData!">
-        </app-tabla-nfpa>
+        <app-tabla-nfpa *ngSwitchCase="'nfpa'" [ficha]="nfpaData!"/>
 
         <!-- Tratamiento -->
-        <app-tabla-tratamiento *ngSwitchCase="'trat'" [ficha]="tratamientoData!">
-        </app-tabla-tratamiento>
+        <app-tabla-tratamiento *ngSwitchCase="'trat'" [ficha]="tratamientoData!"/>
 
         <!-- Emergencia -->
-        <app-tabla-emergencia *ngSwitchCase="'emerg'" [ficha]="emergenciaData!">
-        </app-tabla-emergencia>
+        <app-tabla-emergencia *ngSwitchCase="'emerg'" [ficha]="emergenciaData!"/>
 
         <!-- Almacenamiento -->
-        <app-tabla-almacenamiento *ngSwitchCase="'alm'" [ficha]="almacenamientoData!">
-        </app-tabla-almacenamiento>
+        <app-tabla-almacenamiento *ngSwitchCase="'alm'" [ficha]="almacenamientoData!"/>
 
         <!-- Fallback -->
         <div class="card note" *ngSwitchDefault>

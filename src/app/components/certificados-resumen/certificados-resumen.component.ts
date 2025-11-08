@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
+import { take } from 'rxjs';
+import { RegistrosService } from 'src/app/services/registros.service';
 
 type EstadoCertificado = 'vigente' | 'vencido';
 
@@ -22,32 +24,40 @@ export class CertificadosResumenComponent {
   @Input() titulo = 'Certificados a vencer';
 
   /** Listado de certificados */
-  @Input() certificados: CertificadoResumenItem[] = [];
+  public certificados: CertificadoResumenItem[] = [];
 
-  /** Máximo de filas a mostrar (por defecto 4) */
-  @Input() limite = 4;
-
-  get resumenVigentes(): number {
-    return (this.certificados ?? []).filter((c) => this.esVigente(c)).length;
+  constructor(private readonly registrosService: RegistrosService){
+    this.registrosService.obtenerCertificadoAVencer().pipe(take(1)).subscribe({
+      next: (resp: {ok: boolean, data:  CertificadoResumenItem[]}) => {
+        this.certificados = resp.data}
+    })
+  }
+  get total(): number {
+    return this.certificados?.length ?? 0;
   }
 
-  get resumenVencidos(): number {
-    return (this.certificados ?? []).filter((c) => this.esVencido(c)).length;
+  get vigentes(): number {
+    return (this.certificados ?? []).filter(
+      (c) => c.estado.toLowerCase() === 'vigente'
+    ).length;
   }
 
-  get certificadosFiltrados(): CertificadoResumenItem[] {
-    return (this.certificados ?? []).slice(0, this.limite);
+  get vencidos(): number {
+    return (this.certificados ?? []).filter(
+      (c) => c.estado.toLowerCase() === 'vencido'
+    ).length;
   }
 
-  esVigente(c: CertificadoResumenItem): boolean {
-    return c.estado.toLowerCase() === 'vigente';
+  get pctVigentes(): number {
+    return this.total === 0 ? 0 : Math.round((this.vigentes / this.total) * 100);
   }
 
-  esVencido(c: CertificadoResumenItem): boolean {
-    return c.estado.toLowerCase() === 'vencido';
+  get pctVencidos(): number {
+    return this.total === 0 ? 0 : Math.round((this.vencidos / this.total) * 100);
   }
 
-  trackByCertificado(_index: number, item: CertificadoResumenItem): string {
-    return `${item.producto}-${item.certificado}-${item.fechaExpiracion}`;
+  /** Ancho de la barra de progreso (string con %) */
+  widthPct(pct: number): string {
+    return `${pct}%`;
   }
 }

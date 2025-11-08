@@ -18,18 +18,18 @@
       </div>
     </div>
 
-    <!-- Clasificación para el transporte + CLASE (rombo) -->
+    <!-- Clasificación para el transporte + CLASE (rombo) + FET A/B -->
     <div class="row">
       <div class="cell label">Clasificación para el Transporte</div>
       <div class="cell value">
-        <div class="transport-line">
+        <div class="transport-line" role="group" [attr.aria-label]="'Clasificación para el transporte'">
+          <!-- CLASE -->
           <div class="class-box">
             <span class="muted">CLASE:</span>
             <span class="diamond" *ngIf="hasTransportClass; else sinClase">
               <svg class="rombo" viewBox="0 0 100 100" aria-hidden="true">
                 <path d="M50 2 98 50 50 98 2 50Z" fill="#fff" stroke="#d33" stroke-width="6" />
               </svg>
-              <!-- Si querés, aquí podrías renderizar un ícono según clasImg -->
               <span class="num">{{ ficha.transporte.clasImg }}</span>
             </span>
             <ng-template #sinClase>
@@ -37,18 +37,31 @@
             </ng-template>
           </div>
 
-          <!-- Si más adelante tenés acción para FET, agregalo aquí -->
-          <!--
-          <div class="fet">
+          <!-- Botones FET -->
+          <div class="fet" [attr.aria-label]="'Ficha de Emergencia para el Transporte'">
             <span class="muted">Ficha de Emergencia para el Transporte (FET)</span>
             <div class="fet-docs">
-              <button class="fet-doc" (click)="onOpenFET()" title="Abrir FET">
+              <button
+                type="button"
+                class="fet-doc"
+                title="Abrir FET A"
+                [attr.aria-label]="'Abrir FET A'"
+                (click)="onOpenFET()">
                 <span class="sheet"></span>
                 <span class="letter">A</span>
               </button>
+
+              <button
+                type="button"
+                class="fet-doc"
+                title="Abrir FET B"
+                [attr.aria-label]="'Abrir FET B'"
+                (click)="openPdfBotonB()">
+                <span class="sheet"></span>
+                <span class="letter">B</span>
+              </button>
             </div>
           </div>
-          -->
         </div>
       </div>
     </div>

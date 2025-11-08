@@ -18,6 +18,8 @@ import { DescargaFdsComponent } from './pages/descarga-fds/descarga-fds.componen
 import { DescargaEtiquetaComponent } from './pages/descarga-etiqueta/descarga-etiqueta.component';
 import { SgaSeleccionadoComponent } from './pages/sga/sga-seleccionado/sga-seleccionado.component';
 import { CertificadosCalidadComponent } from './components/certificados-calidad/certificados-calidad.component';
+import { EditarCertificadoCalidadComponent } from './components/editar-certificado-calidad/editar-certificado-calidad.component';
+import { EditarUsuarioComponent } from './components/editar-usuario/editar-usuario.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -33,7 +35,7 @@ const routes: Routes = [
       { path: 'ayuda-video', component: AyudaVideosComponent },
       { path: 'data-user', component: DataUsuarioComponent },
       { path: 'sga', component: SgaComponent },
-      { path: 'sga/:id', component: SgaSeleccionadoComponent },
+      { path: 'sga/:id/:ruta', component: SgaSeleccionadoComponent },
       { path: 'buscar-insumos', component: BuscarInsumoComponent },
       { path: 'registro-insumo', component: RegistroInsumoComponent },
       { path: 'ver-insumo', component: VerInsumoComponent },
@@ -41,10 +43,11 @@ const routes: Routes = [
       { path: 'descarga-fet', component: DescargaFetComponent },
       { path: 'descarga-hso', component: DescargaHsoComponent },
       { path: 'descarga-fds', component: DescargaFdsComponent },
-      { path: 'etiquetas', component: EtiquetasComponent },
+      { path: 'etiquetas/:id', component: EtiquetasComponent },
       { path: 'descarga-etiqueta', component: DescargaEtiquetaComponent },
       {path: 'certificados-calidad', component: CertificadosCalidadComponent},
-
+      {path: 'certificados-calidad/:numero/:indice/editar', component: EditarCertificadoCalidadComponent },
+      { path: 'data-user/:id/editar', component: EditarUsuarioComponent },
     ],
   },
   { path: '**', redirectTo: 'login' },

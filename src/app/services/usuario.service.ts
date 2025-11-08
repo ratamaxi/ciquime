@@ -21,21 +21,29 @@ export interface UserData {
   empresa?: { razonSocial?: string; nombre?: string };
 }
 
+export interface UsuarioDetalle {
+  id: number;
+  nombre: string;
+  mail: string;
+  alias: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
 
   private readonly baseUrl = environment.baseUrl;
 
   private userRequest$?: Observable<UserData>;
+  private api = '/api/descargas';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Devuelve un observable con los datos del usuario actual.
    * - Hace UNA sola petición y la cachea (shareReplay(1)).
    * - Guarda id en localStorage cuando llega.
    */
-  get user$(): Observable<UserData> {
+  public get user$(): Observable<UserData> {
     if (!this.userRequest$) {
       const userName = localStorage.getItem('user') ?? '';
       this.userRequest$ = this.http
@@ -52,7 +60,7 @@ export class UsuarioService {
   }
 
   /** Acceso directo sólo al id (también cacheado). */
-  get userId$(): Observable<number> {
+  public get userId$(): Observable<number> {
     return this.user$.pipe(map((u) => u.id_usuario));
   }
 
@@ -78,14 +86,37 @@ export class UsuarioService {
   }
 
   public getEmpresas(): Observable<EmpresaTercero[]> {
-  return this.http
-    .get<EmpresaTercero[]>(`${this.baseUrl}/usuario/empresas`)
-    .pipe(
-      // Aseguro tipos y opcionalmente normalizo acentos
-      map(rows => (rows ?? []).map(e => ({
-        id: Number(e.id),
-        noemp: e.noemp
-      }))),
-    );
-}
+    return this.http
+      .get<EmpresaTercero[]>(`${this.baseUrl}/usuario/empresas`)
+      .pipe(
+        // Aseguro tipos y opcionalmente normalizo acentos
+        map(rows => (rows ?? []).map(e => ({
+          id: Number(e.id),
+          noemp: e.noemp
+        }))),
+      );
+  }
+
+  public getDataUsuario(id: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/usuario/info/usuario/${id}`)
+  }
+
+  public updateUsuario(
+    id: string | number,
+    data: { correo: string; alias?: string | null; contrasena?: string }
+  ): Observable<any> {
+    const body: any = {
+      mail: data.correo,
+      alias: data.alias ?? null,
+    };
+
+    // Solo enviamos password si viene con contenido
+    if (data.contrasena && data.contrasena.trim().length > 0) {
+      body.password = data.contrasena.trim();
+    }
+
+    return this.http.put(`${this.baseUrl}/usuario/info/usuario/${id}`, body);
+  }
+
+
 }

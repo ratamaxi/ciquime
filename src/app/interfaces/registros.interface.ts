@@ -118,3 +118,9 @@ export interface EditarInsumoRequest {
     lote: string,
     nota: string,
 }
+
+export interface AgregarInsumoAUsuario {
+      materia: string,
+      empresa: string,
+      usuario: string
+}

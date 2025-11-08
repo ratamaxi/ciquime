@@ -126,26 +126,18 @@ export class TablaDescargarComponent {
   }
 
 public abrirHSO(item: InsumoDescarga): void {
-  const url = this.registros.getHsUrl(item.id); // → http(s)://.../api/utils/legacy/hs/:id
-  window.open(url, '_blank', 'noopener,noreferrer'); // abre nueva pestaña y sigue el 302
+  const url = this.registros.getHsUrl(item.id);
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+public abrirFet(item: InsumoDescarga): void {
+  const url = this.registros.getFetUrl(item.id);
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
   // ---------- Acciones ----------
-  public descargarDocumento(item: InsumoDescarga, tipo: 'hso' | 'fet' | 'fds' = 'fds'): void {
+  public abrirFds(item: InsumoDescarga): void {
     const openBlank = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
-
-    // Para HSO/FET: ideal usar idEncrypt. Si no hay, usamos id crudo (solo si el server lo acepta).
-    const idParam = encodeURIComponent(item.idEncrypt ?? item.id);
-
-    if (tipo === 'hso') {
-      openBlank(`${this.oldPortalBase}/hs.php?id=${idParam}`);
-      return;
-    }
-
-    if (tipo === 'fet') {
-      openBlank(`${this.oldPortalBase}/fie.php?id=${idParam}`);
-      return;
-    }
 
     // FDS
     if (!item.fdsFile) {
@@ -154,6 +146,7 @@ public abrirHSO(item: InsumoDescarga): void {
     }
     const root = this.encodeForOldPortal(item.fdsFile); // clave para “Espa%C3%83%C2%B1ol…”
     const rfn  = encodeURIComponent(item.producto);
+      console.log(`${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`)
     openBlank(`${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`);
   }
 
@@ -179,9 +172,6 @@ public abrirHSO(item: InsumoDescarga): void {
   // (opcionales de demo)
   editar(i: InsumoDescarga)           { alert(`Editar: ${i.producto}`); }
   verSGA(i: InsumoDescarga)           { alert(`SGA de: ${i.producto}`); }
-  verHSO(i: InsumoDescarga)           { this.descargarDocumento(i, 'hso'); }
-  verFET(i: InsumoDescarga)           { this.descargarDocumento(i, 'fet'); }
-  verFDS(i: InsumoDescarga)           { this.descargarDocumento(i, 'fds'); }
   imprimirEtiqueta(i: InsumoDescarga) { alert(`Etiqueta de: ${i.producto} (${i.calidadDoc ?? 'sin doc'})`); }
   auditar(i: InsumoDescarga)          { alert(`Auditar: ${i.producto}`); }
   eliminar(i: InsumoDescarga) {

@@ -136,7 +136,7 @@ public onSubmit() {
   this.loading = true;
 
   this.registros
-    .crearInsumo(this.currentUserId, fd)  // <-- ahora envía FormData
+    .crearInsumo(this.currentUserId, fd)
     .subscribe({
       next: (resp: any) => {
         this.loading = false;

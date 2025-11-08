@@ -1,0 +1,62 @@
+<section class="page" *ngIf="!loading && !error && usuario as item">
+  <div class="page__container">
+    <header class="page__header">
+      <div>
+        <h1>Editar Usuario</h1>
+        <p class="page__subtitle">
+          Configuración del perfil de <strong>{{ item.nombre }}</strong>
+        </p>
+      </div>
+      <div class="page__summary">
+        <span class="page__summary-label">Alias</span>
+        <span class="page__summary-value">{{ item.alias || '—' }}</span>
+      </div>
+    </header>
+
+    <form class="card form" [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" class="control" formControlName="nombre" />
+        </div>
+        <div class="field">
+          <label for="alias">Alias</label>
+          <input id="alias" type="text" class="control" formControlName="alias" />
+        </div>
+      </div>
+
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="contrasena">Contraseña</label>
+          <input
+            id="contrasena"
+            type="password"
+            class="control"
+            formControlName="contrasena"
+            autocomplete="new-password"
+            placeholder="Opcional (mín. 6 caracteres)"
+          />
+        </div>
+        <div class="field">
+          <label for="correo">Correo</label>
+          <input id="correo" type="email" class="control" formControlName="correo" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--ghost" (click)="cancelar()">Cancelar</button>
+      <button type="submit" class="btn btn--primary" [disabled]="saving">
+  {{ saving ? 'Guardando…' : 'Grabar y guardar' }}
+</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Estados -->
+<div *ngIf="loading" class="page__container">
+  <p>Cargando usuario…</p>
+</div>
+<div *ngIf="!loading && error" class="page__container">
+  <p class="text-danger">{{ error }}</p>
+</div>

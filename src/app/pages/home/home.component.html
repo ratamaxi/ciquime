@@ -1,7 +1,7 @@
 <div class="home-flex pt-5">
-      <h2>Bienvenido</h2>
+  <h2>Bienvenido</h2>
 </div>
-<div class="home-flex pt-2">
+<div class="home-flex pt-2 pb-5">
   <div class="rail-left">
     <div class="fadeInLeft">
       <app-status-card></app-status-card>
@@ -12,20 +12,10 @@
   </div>
 
   <div class="rail-right fadeInRight">
-    <app-estadisticas
-      class="mb-3"
-      [mostrarBarras]="['aprobados','pendientes']">
-    </app-estadisticas>
+    <app-estadisticas class="mb-3" [mostrarBarras]="['aprobados','pendientes']"/>
 
-      <app-certificados-resumen
-      class="mb-3"
-      [certificados]="certificadosResumen"
-      [limite]="4">
-    </app-certificados-resumen>
+    <app-actividades-item class="mb-3" [showVerMas]="false"/>
 
-    <app-actividades-item
-      [items]="misActividades"
-      [showVerMas]="false">
-    </app-actividades-item>
+    <app-certificados-resumen/>
   </div>
 </div>

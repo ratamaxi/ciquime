@@ -1,0 +1,102 @@
+<section class="page">
+  <div class="page__watermark" aria-hidden="true"></div>
+  <div class="page__container" *ngIf="registro as item">
+    <header class="page__header">
+      <div>
+        <h1>Editar Registro</h1>
+      </div>
+      <div class="page__badge">{{ item.estadoRegistro || 'APROBADO' }}</div>
+    </header>
+
+    <form class="card form" [formGroup]="form" (ngSubmit)="guardar()">
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="numero-original">Número Original</label>
+          <input id="numero-original" type="text" class="control" formControlName="numeroOriginal" />
+        </div>
+        <div class="field">
+          <label for="estado">Estado</label>
+          <select id="estado" class="control" formControlName="estadoRegistro">
+            <option value="" disabled>Seleccioná…</option>
+            <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="fabricante">Fabricante</label>
+          <input id="fabricante" type="text" class="control" formControlName="fabricante" />
+        </div>
+        <div class="field">
+          <label for="anios">Años en el depósito</label>
+          <select id="anios" class="control" formControlName="aniosDeposito">
+            <option value="" disabled>Seleccioná…</option>
+            <option *ngFor="let anio of aniosDeposito" [value]="anio">{{ anio }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid--two grid--align-end">
+        <div class="field">
+          <span class="label">Certificado por Documento de Calidad</span>
+          <div class="radio-line" role="radiogroup" aria-label="¿Cuenta con documento de calidad?">
+            <label>
+              <input type="radio" formControlName="certificadoPorDocumento" [value]="true" />
+              Sí
+            </label>
+            <label>
+              <input type="radio" formControlName="certificadoPorDocumento" [value]="false" />
+              No
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label for="vencimiento">Vencimiento</label>
+          <input id="vencimiento" type="date" class="control" formControlName="vencimientoCertificado" />
+        </div>
+      </div>
+
+      <div class="divider" aria-hidden="true"></div>
+
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="doc1">Documento de calidad #1</label>
+          <div class="file-control">
+            <input id="doc1" type="file" (change)="actualizarDocumento(0, $event)" />
+            <label class="file-control__button" for="doc1">Seleccionar archivo</label>
+            <span class="file-control__name">
+              {{ documentos[0].nombre || 'Ningún archivo seleccionado' }}
+            </span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="doc1-vencimiento">Vencimiento</label>
+          <input id="doc1-vencimiento" type="date" class="control" formControlName="doc1Vencimiento" />
+        </div>
+      </div>
+
+      <div class="grid grid--two">
+        <div class="field">
+          <label for="doc2">Documento de calidad #2</label>
+          <div class="file-control">
+            <input id="doc2" type="file" (change)="actualizarDocumento(1, $event)" />
+            <label class="file-control__button" for="doc2">Seleccionar archivo</label>
+            <span class="file-control__name">
+              {{ documentos[1].nombre || 'Ningún archivo seleccionado' }}
+            </span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="doc2-vencimiento">Vencimiento</label>
+          <input id="doc2-vencimiento" type="date" class="control" formControlName="doc2Vencimiento" placeholder="dd/mm/aaaa" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--ghost" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Grabar y guardar</button>
+      </div>
+    </form>
+  </div>
+</section>

@@ -10,89 +10,104 @@
     </button>
   </header>
 
-  <div class="panel shadow">
+  <div class="panel">
     <div class="panel__header">
       <div class="panel__summary">
-        <span class="summary__item">
-          <span class="summary__label">Vigentes</span>
-          <span class="summary__value">{{ vigentes }}</span>
-        </span>
-        <span class="summary__item">
-          <span class="summary__label">Vencidos</span>
-          <span class="summary__value summary__value--warn">{{ vencidos }}</span>
-        </span>
-        <span class="summary__item">
-          <span class="summary__label">Total</span>
-          <span class="summary__value">{{ totalRegistros }}</span>
-        </span>
-      </div>
+        <div class="d-flex">
+          <span class="summary__item">
+            <span class="summary__label">Vigentes</span>
+            <span class="summary__value">{{ vigentes }}</span>
+          </span>
+          <span class="summary__item">
+            <span class="summary__label">Vencidos</span>
+            <span class="summary__value summary__value--warn">{{ vencidos }}</span>
+          </span>
+          <span class="summary__item">
+            <span class="summary__label">Total</span>
+            <span class="summary__value">{{ totalRegistros }}</span>
+          </span>
+        </div>
+        <div class="panel__filters" aria-label="Controles de la tabla">
+          <div class="filters__display">
+            <span>Mostrar </span>
+            <select class="mx-3" aria-label="Cantidad de registros a mostrar">
+              <option>10</option>
+              <option selected>25</option>
+              <option>50</option>
+            </select>
 
-      <div class="panel__filters">
-        <label class="filters__field">
-          <span class="filters__label">Mostrar</span>
-          <select class="filters__select" aria-label="Cantidad de registros a mostrar">
-            <option>10</option>
-            <option selected>25</option>
-            <option>50</option>
-          </select>
-          <span class="filters__label">registros</span>
-        </label>
+            <span>registros</span>
+          </div>
 
-        <label class="filters__field">
-          <span class="filters__label">Buscar</span>
-          <input type="text" placeholder="Producto, fabricante…" />
-        </label>
+          <div class="filters__search">
+            <label class="pt-2">Buscar:</label>
+            <input id="buscar-certificados" type="text" placeholder="Producto, fabricante…" />
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="table-wrap" role="region" aria-live="polite">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Número Interno</th>
-            <th>Producto</th>
-            <th>Fabricante</th>
-            <th>Certificado</th>
-            <th>Fecha Expedición</th>
-            <th>Fecha Expiración</th>
-            <th>Estado</th>
-            <th class="col-accion">Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let registro of registros; trackBy: trackByNumero">
-            <td class="text-strong">{{ registro.numeroInterno }}</td>
-            <td>{{ registro.producto }}</td>
-            <td>{{ registro.fabricante }}</td>
-            <td>{{ registro.certificado }}</td>
-            <td>{{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}</td>
-            <td>{{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
-            <td>
-              <span
-                class="estado"
-                [class.estado--vigente]="registro.estado === 'vigente'"
-                [class.estado--vencido]="registro.estado === 'vencido'"
-              >
-                {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
-              </span>
-            </td>
-            <td class="col-accion">
-              <button type="button" class="btn-link">Descargar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <div class="card">
+      <div class="table-wrap" role="region" aria-live="polite">
+        <table>
+          <thead>
+            <tr>
+              <th>Número Interno</th>
+              <th>Producto</th>
+              <th>Fabricante</th>
+              <th>Fecha Expedición</th>
+              <th>Fecha Expiración</th>
+              <th>Estado</th>
+              <th class="col-accion">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let registro of registros; trackBy: trackByNumero">
+              <td class="text-strong">{{ registro.numeroInterno }}</td>
+              <td>{{ registro.producto }}</td>
+              <td>{{ registro.fabricante }}</td>
+              <td>{{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}</td>
+              <td>{{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="estado" [class.estado--vigente]="registro.estado === 'vigente'"
+                  [class.estado--vencido]="registro.estado === 'vencido'">
+                  {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
+                </span>
+              </td>
+              <td class="center">
+                <button class="icon" title="Editar">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2.92 2.33h-.5v-.5l9.9-9.9.5.5-9.9 9.9ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
+                  </svg></button>
+                <button class="icon download" title="Eliminar">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                    <path
+                      d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
+                  </svg></button>
+                    <button class="icon download" title="Eliminar">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                    <path
+                      d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
+                  </svg></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <footer class="panel__footer">
-      <div class="footer__summary">
-        Mostrando registros del 1 al {{ registros.length }} de un total de {{ totalRegistros }} registros
+      <div class="table-footer">
+        <div class="muted">
+          Mostrando registros del <b>1</b> al <b>{{ registros.length }}</b> de un total de <b>{{ totalRegistros }}</b>
+          registros
+        </div>
+        <div class="pager">
+          <button type="button" class="btn" disabled>Anterior</button>
+          <button type="button" class="btn" disabled>Siguiente</button>
+        </div>
       </div>
-      <div class="footer__pager">
-        <button type="button" class="pager-btn" disabled>Anterior</button>
-        <span class="page">Página {{ page }} de 1</span>
-        <button type="button" class="pager-btn" disabled>Siguiente</button>
-      </div>
-    </footer>
+    </div>
   </div>
 </section>

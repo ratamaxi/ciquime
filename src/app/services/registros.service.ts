@@ -2,8 +2,9 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { BuscarInsumoQuery, BuscarInsumoResponseItem, BuscarInsumoUI, CrearInsumoResp, CrearSgaResp, EditarInsumoRequest, EstadisticasInsumosData, Estado, InsertResponse, Insumo } from '../interfaces/registros.interface';
+import { AgregarInsumoAUsuario, BuscarInsumoQuery, BuscarInsumoResponseItem, BuscarInsumoUI, CrearInsumoResp, CrearSgaResp, EditarInsumoRequest, EstadisticasInsumosData, Estado, InsertResponse, Insumo } from '../interfaces/registros.interface';
 import { FdsResponse } from '../interfaces/descargas.interface';
+import { CertificadoResumenItem } from '../components/certificados-resumen/certificados-resumen.component';
 
 interface ApiResp {
   ok: boolean;
@@ -196,9 +197,23 @@ export class RegistrosService {
     return `${this.base_url}/utils/legacy/hs/${encodeURIComponent(materiaId)}`;
   }
 
+  public getFetUrl(materiaId: string): string {
+    return `${this.base_url}/utils/legacy/fet/${encodeURIComponent(materiaId)}`;
+  }
+
   public modificarInsumo(body: EditarInsumoRequest): Observable<void> {
     const apiUrl = `${this.base_url}/registros/modificar/insumo/${this.idUsuario}`;
     return this.http.put<void>(apiUrl, body);
+  }
+
+  public agregarInsumoUsuario(body: AgregarInsumoAUsuario): Observable<void> {
+      const apiUrl = `${this.base_url}/registros/agregar/insumo/usuario`;
+      return this.http.post<void>(apiUrl, body);
+  }
+
+   public obtenerCertificadoAVencer(): Observable<{ok: boolean, data:  CertificadoResumenItem[]}> {
+    const apiUrl = `${this.base_url}/registros/obtener/certificados/${this.idUsuario}`;
+    return this.http.get<{ok: boolean, data:  CertificadoResumenItem[]}>(apiUrl);
   }
 }
 

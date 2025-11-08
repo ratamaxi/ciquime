@@ -1,41 +1,39 @@
-<div class="card">
+<div class="card" role="group" [attr.aria-label]="titulo">
   <div class="header">
     <h3 class="title">{{ titulo }}</h3>
-
-    <div class="chips" aria-hidden="true">
-      <span class="chip chip--ok">Vigentes <strong>{{ resumenVigentes }}</strong></span>
-      <span class="chip chip--warn">Vencidos <strong>{{ resumenVencidos }}</strong></span>
-    </div>
   </div>
 
-  <div role="table" aria-label="Listado de certificados próximos a vencer">
-    <div class="table__header mb-1" role="row">
-      <span class="th producto" role="columnheader">Producto</span>
-      <span class="th estado" role="columnheader">Estado</span>
+  <!-- Vigentes -->
+  <div class="stat-row" aria-label="Vigentes">
+    <div class="badge" aria-hidden="true">{{ vigentes }}</div>
+    <div class="label">Vigentes</div>
+
+    <div class="bar-wrap" role="progressbar"
+         [attr.aria-valuemin]="0"
+         [attr.aria-valuemax]="100"
+         [attr.aria-valuenow]="pctVigentes"
+         [attr.aria-label]="'Vigentes ' + pctVigentes + ' por ciento'">
+      <div class="bar bar--ok" [style.width]="widthPct(pctVigentes)"></div>
     </div>
 
-    <ng-container *ngIf="certificadosFiltrados.length; else vacio">
-      <div
-        class="table__row mb-2"
-        role="row"
-        *ngFor="let certificado of certificadosFiltrados; trackBy: trackByCertificado"
-      >
-        <span class="td producto" role="cell" [title]="certificado.producto">
-          {{ certificado.producto }}
-        </span>
-        <span
-          class="td estado"
-          role="cell"
-          [class.estado--vigente]="esVigente(certificado)"
-          [class.estado--vencido]="esVencido(certificado)"
-        >
-          {{ esVigente(certificado) ? 'Vigente' : 'Vencido' }}
-        </span>
-      </div>
-    </ng-container>
+    <div class="pct">{{ pctVigentes }} %</div>
   </div>
 
-  <ng-template #vacio>
-    <div class="empty" role="note">Sin certificados registrados.</div>
-  </ng-template>
+  <!-- Vencidos -->
+  <div class="stat-row stat-row--sep" aria-label="Vencidos">
+    <div class="badge" aria-hidden="true">{{ vencidos }}</div>
+    <div class="label">Vencidos</div>
+
+    <div class="bar-wrap" role="progressbar"
+         [attr.aria-valuemin]="0"
+         [attr.aria-valuemax]="100"
+         [attr.aria-valuenow]="pctVencidos"
+         [attr.aria-label]="'Vencidos ' + pctVencidos + ' por ciento'">
+      <div class="bar bar--warn" [style.width]="widthPct(pctVencidos)"></div>
+    </div>
+
+    <div class="pct">{{ pctVencidos }} %</div>
+  </div>
+
+  <div class="total" *ngIf="total === 0">Sin certificados registrados.</div>
 </div>

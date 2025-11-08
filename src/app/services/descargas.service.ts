@@ -13,6 +13,7 @@ export class DescargasService {
 
   private descargas = `${this.base_url}/descargas`;
   private utils = `${this.base_url}/utils/legacy`;
+  private idEmpresa: string = localStorage.getItem('id_empresa') ?? '';
 
   constructor(private http: HttpClient) {}
 
@@ -83,4 +84,17 @@ export class DescargasService {
       error: (e) => console.error('FET error', e)
     });
   }
+
+   public getPais(): Observable<any> {
+    return this.http.get<any>(`${this.descargas}/pais/${this.idEmpresa}`);
+  }
+
+  public getEtiquetaMenos3LUrl(materiaId: number | string): string {
+  return `${this.descargas}/etiquetas/menos-3l/${materiaId}`;
+}
+
+  public getEtiquetaGenerica(materiaId: number | string, type: string): string {
+  return `${this.descargas}/legacy/etiquetas/${type}/${materiaId}`;
+}
+
 }

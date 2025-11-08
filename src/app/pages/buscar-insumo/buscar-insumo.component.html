@@ -1,6 +1,6 @@
 <div class="px-5">
   <div class="page px-5 pt-5">
-    <h3>Registro/Actualización de Insumo</h3>
+    <h3 class="title-font">Registro/Actualización de Insumo</h3>
 
     <!-- Barra de búsqueda -->
     <div class="search-card mt-3">
@@ -96,15 +96,15 @@
     <button
       type="button"
       class="icon-btn"
-      (click)="verFDS(r)"
+      [routerLink]="['/panel/sga', r.id, 'false']"
       title="Ver FDS (SGA)"
       aria-label="Ver FDS (SGA)"
     >
-      <svg class="icon icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
+     <svg class="icon-sga icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
         <!-- rombo con más aire -->
         <polygon points="16,5 27,16 16,27 5,16" class="sga-diamond"></polygon>
         <!-- texto centrado perfecto -->
-        <text x="16" y="16" text-anchor="middle" dominant-baseline="middle" class="sga-text">SGA</text>
+        <text x="16" y="17" text-anchor="middle" dominant-baseline="middle" class="sga-text">SGA</text>
       </svg>
     </button>
 
