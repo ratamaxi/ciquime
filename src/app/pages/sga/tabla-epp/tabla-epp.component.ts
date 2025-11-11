@@ -6,8 +6,9 @@ export type EppIcon = 'gafas' | 'guantes' | 'respirador' | 'careta' | 'botas' | 
 export interface TablaEppFicha {
   productName: string;
   supplier: string;
-  rnpq?: string; // opcional
-  epp: any;
+  rnpq?: string | null;
+  eppCode?: string | null;
+  eppImg?: string | null;
   componentes: Array<{ nombre: string; cas: string; porcentaje: string }>;
 }
 
@@ -20,13 +21,6 @@ export interface TablaEppFicha {
 })
 export class TablaEppComponent {
 
-  @Input() ficha: TablaEppFicha = {
-    productName: '1,4-DIOXANO',
-    supplier: 'MERCK S.A.',
-    rnpq: '',
-    epp: ['gafas', 'guantes', 'respirador'],
-    componentes: [
-      { nombre: '1,4-Dioxano', cas: '123-91-1', porcentaje: '100%' },
-    ],
-  };
+  @Input() ficha!: TablaEppFicha;
+
 }

@@ -48,36 +48,37 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
   public tratamientoData: TratamientoFicha | null = null;
   public nfpaData: NfpaTransporteFicha | null = null;
 
-  loadingTab = false;
-  errorTab: string | null = null;
+  public loadingTab = false;
+  public errorTab: string | null = null;
 
   private materiaId = 0;
-  public mostrarCompleto: boolean = false;
+  public mostrarCompleto = false;
   private sub?: Subscription;
 
-  fichaPeligro: SgaFicha | null = null;
-  fichaEpp: TablaEppFicha | null = null;
+  public fichaPeligro: SgaFicha | null = null;
+  public fichaEpp: TablaEppFicha | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private descargas: DescargasService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.sub = this.route.paramMap.subscribe(pm => {
       const id = Number(pm.get('id'));
       this.materiaId = isFinite(id) ? id : 0;
+
       const valorUrlRuta = pm.get('ruta');
-      if (valorUrlRuta == 'false') {
-        this.tabs = [
-          { key: 'peligro' as const, label: 'Peligros por SGA' },
-        ];
+      if (valorUrlRuta === 'false') {
+        this.tabs = [{ key: 'peligro', label: 'Peligros por SGA' }];
       }
       this.loadActive();
     });
   }
 
-  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+  }
 
   setActive(tab: TabKey): void {
     if (this.active === tab) return;
@@ -96,7 +97,10 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
     switch (this.active) {
       case 'peligro':
         this.descargas.getSgaPeligros(this.materiaId).subscribe({
-          next: (resp) => { this.fichaPeligro = this.mapPeligro(resp); this.loadingTab = false; },
+          next: (resp) => {
+            this.fichaPeligro = this.mapPeligro(resp);
+            this.loadingTab = false;
+          },
           error: (e) => this.handleErr(e)
         });
         break;
@@ -121,11 +125,9 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
         });
         break;
 
-
       case 'trat':
         this.descargas.getSgaTratamiento(this.materiaId).subscribe({
           next: (resp) => {
-            // resp puede venir como { ok, data: {...} } o directo con los campos
             const payload = resp?.data ?? resp;
             this.tratamientoData = this.mapTratamiento(payload);
             this.loadingTab = false;
@@ -164,16 +166,15 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
 
   // ---------- MAPEOS ----------
 
+  /** PELIGROS: pasar pictogramas tal cual llegan del back (GHSxx) */
   private mapPeligro(resp: any): SgaFicha {
     const d = resp?.data ?? resp ?? {};
     const h = d.header ?? {};
 
-    // H → descripciones
     const hazardStatements: string[] = Array.isArray(d.frasesH)
       ? d.frasesH.map((f: any) => (f?.espaniol ?? f?.frase ?? '').toString().trim()).filter(Boolean)
       : [];
 
-    // P → descripciones
     const precautionaryStatements: string[] = Array.isArray(d.consejosPrudencia)
       ? d.consejosPrudencia.map((p: any) => (p?.espaniol ?? p?.frase ?? '').toString().trim()).filter(Boolean)
       : [];
@@ -181,104 +182,59 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
     return {
       productName: h.nombre_producto ?? '',
       supplier: h.razonSocial ?? '',
-      displayVisibility: 'Publico',   // tu back no lo envía
-      dataSource: '',          // tu back no lo envía
-      pictograms: this.mapGhsToUiPictos(d.pictogramas),
+      displayVisibility: 'Publico',
+      dataSource: '',
+      // ⬇️ SIN traducción: usar los códigos GHS tal cual (ej: "GHS00")
+      pictograms: Array.isArray(d.pictogramas) ? d.pictogramas.filter(Boolean) : [],
       signalWord: d.palabra_advertencia ?? '',
       hazardStatements,
       precautionaryStatements,
     };
   }
 
-  private mapGhsToUiPictos(codes: any): string[] {
-    const list: string[] = Array.isArray(codes) ? codes : [];
-    const MAP: Record<string, string> = {
-      // algunos más comunes; agregá los que necesites
-      GHS01: 'bomba',            // explosivo (no lo dibuja el hijo hoy, quedará sin ícono)
-      GHS02: 'llama',            // inflamable
-      GHS03: 'llama-oxidante',   // oxidante (no lo dibuja el hijo hoy)
-      GHS04: 'bombona',          // gas (no lo dibuja el hijo hoy)
-      GHS05: 'corrosion',        // corrosivo (no lo dibuja el hijo hoy)
-      GHS06: 'calavera',         // toxicidad aguda (no lo dibuja el hijo hoy)
-      GHS07: 'exclamacion',      // irritante/menos grave ✔️
-      GHS08: 'peligro-salud',    // peligro salud crónica ✔️
-      GHS09: 'ambiente',         // medio ambiente (no lo dibuja el hijo hoy)
-      GHS00: '',                 // sin pictograma
-    };
-    return list
-      .map(c => MAP[c] ?? '')
-      .filter(Boolean);
-  }
+  /** EPP y composición */
+private mapEpp(resp: any): TablaEppFicha {
+  const d = resp?.data ?? resp ?? {};
+  const h = d.header ?? {};
+  const pictRaw = (d.epp?.pictograma ?? '').toString().trim();
+  const pict = pictRaw ? pictRaw.toUpperCase() : null;
 
-  private mapEpp(resp: any): TablaEppFicha {
-    const d = resp?.data ?? resp ?? {};
-    const h = d.header ?? {};
-    const pict = d.epp?.pictograma ?? null;
-    const comps = Array.isArray(d.composicion) ? d.composicion : [];
+  const comps = Array.isArray(d.composicion) ? d.composicion : [];
 
-    return {
-      productName: h.nombre_producto ?? '',
-      supplier: h.razonSocial ?? '',
-      rnpq: h.rnpqlist ?? '',
-      epp: this.mapPictogramaToEpp(pict),
-      componentes: comps.map((c: any) => ({
-        nombre: String(c?.componente ?? '').replace(/\r?\n|\r/g, '').trim(),
-        cas: c?.cas ?? '',
-        porcentaje: this.formatPorcentaje(c?.porcentaje, c?.porcentaje2),
-      })),
-    };
-  }
+  return {
+    productName: h.nombre_producto ?? '',
+    supplier: h.razonSocial ?? '',
+    rnpq: h.rnpqlist ?? null,
+    eppCode: pict,
+    eppImg: pict ? this.eppAssetUrl(pict) : null,
+    componentes: comps.map((c: any) => ({
+      nombre: String(c?.componente ?? '').replace(/\r?\n|\r/g, '').trim(),
+      cas: c?.cas ?? '',
+      porcentaje: this.formatPorcentaje(c?.porcentaje, c?.porcentaje2),
+    })),
+  };
+}
 
-  /** Convierte la letra del pictograma EPP (p.ej. "B") a la lista de íconos que usa el hijo */
-  private mapPictogramaToEpp(letter: string | null | undefined): EppIcon[] {
-    const l = String(letter || '').toUpperCase();
+private eppAssetUrl(letter: string): string {
+  const safe = String(letter).replace(/[^A-Z0-9_-]/g, '').toUpperCase();
+  return `assets/iconos/${safe}.png`;
+}
 
-    // Mapa de ejemplo (ajustá a tu criterio/legado)
-    const MAP: Record<string, EppIcon[]> = {
-      // Referencias típicas:
-      // A: gafas
-      A: ['gafas'],
-      // B: gafas + guantes
-      B: ['gafas', 'guantes'],
-      // C: gafas + guantes + ropa
-      C: ['gafas', 'guantes', 'ropa'],
-      // D: gafas + guantes + respirador
-      D: ['gafas', 'guantes', 'respirador'],
-      // E: gafas + guantes + respirador + ropa
-      E: ['gafas', 'guantes', 'respirador', 'ropa'],
-      // F: todo lo anterior + botas
-      F: ['gafas', 'guantes', 'respirador', 'ropa', 'botas'],
-    };
-
-    return MAP[l] ?? [];
-  }
-
-  /** Arma el string de porcentaje como en el PHP (si porcentaje=0, usar porcentaje2; si no, rango "a-b%") */
+  /** “a-b%” o solo “b%” si a = 0 (igual que PHP) */
   private formatPorcentaje(p1: any, p2: any): string {
     const a = Number(p1);
     const b = Number(p2);
-
-    // casos del back:
-    // - cuando p1=0 → mostraban solo p2%
-    // - cuando p1>0 → "p1% - p2%"
     if (!isFinite(a) || !isFinite(b)) {
-      // fallback seguro
       return [p1, p2].filter(v => v !== undefined && v !== null && v !== '').join(' - ');
     }
-
-    if (a === 0) {
-      return `${b}%`;
-    }
+    if (a === 0) return `${b}%`;
     return `${a}% - ${b}%`;
   }
 
-  /** 🔧 NUEVO: mapea backend -> TratamientoFicha que espera el hijo */
+  /** Tratamiento (tab) */
   private mapTratamiento(d: any): TratamientoFicha {
-    // El ejemplo de tu back trae estos campos:
-    // tratamiento, medidas_generales, contacto_ojos, contacto_piel, inhalacion, ingestion, nota_medico
-    // El hijo requiere (según tu error): productName, supplier, ojos, piel, etc.
     return {
-      productName: d?.productName ?? d?.nombre_producto ?? '', // si no viene, queda vacío
+      productName: d?.productName ?? d?.nombre_producto ?? '',
       supplier: d?.supplier ?? d?.razonSocial ?? '',
       medidasGenerales: d?.medidas_generales ?? '',
       ojos: d?.contacto_ojos ?? '',
@@ -289,22 +245,10 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
     };
   }
 
-  // helpers
-  private coerceEpp(v: any): EppIcon[] {
-    const allow: EppIcon[] = ['gafas', 'guantes', 'respirador', 'botas'];
-    if (!v) return [];
-    const arr = Array.isArray(v) ? v : String(v).split(',').map((s: string) => s.trim());
-    return arr.filter((x: string) => allow.includes(x as EppIcon)) as EppIcon[];
-  }
-
-  get activeLabel(): string {
-    return this.tabs.find(t => t.key === this.active)?.label ?? '';
-  }
-
+  /** Emergencia (tab) */
   private mapEmergencia(resp: any): EmergenciaFicha {
     const d = resp?.data ?? resp ?? {};
     const header = d.header ?? resp?.header ?? {};
-
     return {
       productName: header.nombre_producto ?? header.productName ?? '',
       supplier: header.razonSocial ?? header.supplier ?? '',
@@ -315,6 +259,7 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
     };
   }
 
+  /** Almacenamiento (tab) */
   private mapAlmacenamiento(resp: any): AlmacenamientoFicha {
     const d = resp?.data ?? resp ?? {};
     return {
@@ -335,35 +280,40 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
   private splitList(v: any): string[] {
     if (!v) return [];
     if (Array.isArray(v)) return v;
-    return String(v)
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    return String(v).split(',').map(s => s.trim()).filter(Boolean);
   }
 
-  private mapNfpaTransporte(resp: any): NfpaTransporteFicha {
-    const h = resp?.header ?? {};
-    const n = resp?.nfpa ?? {};
-    const t = resp?.transporte ?? {};
-
-    return {
-      productName: h.nombre_producto ?? '',
-      supplier: h.razonSocial ?? '',
-      fuente: h.fuente ?? '',
-      nfpa: {
-        salud: n.salud ?? 'NP',
-        inflamabilidad: n.inflamabilidad ?? 'NP',
-        reactividad: n.reactividad ?? 'NP',
-        otros: n.otros ?? '-',
-      },
-      transporte: {
-        codRiesgo: t.cod_riesgo ?? 'NP',
-        nroOnu: t.nro_onu ?? 'NP',
-        grupoEmbalaje: t.grupo_embalaje ?? 'NP',
-        clasImg: t.clas_img ?? '0',
-        guia: t.guia ?? '',
-      },
-    };
+  get activeLabel(): string {
+    return this.tabs.find(t => t.key === this.active)?.label ?? '';
   }
+
+private mapNfpaTransporte(resp: any): NfpaTransporteFicha {
+  const d = resp?.data ?? resp ?? {};
+  const h = d.header ?? {};
+  const n = d.nfpa ?? {};
+  const t = d.transporte ?? {};
+
+  return {
+    productName: h.nombre_producto ?? '',
+    supplier: h.razonSocial ?? '',
+    fuente: h.fuente ?? '',
+
+    nfpa: {
+      salud: n.salud ?? 'NP',
+      inflamabilidad: n.inflamabilidad ?? 'NP',
+      reactividad: n.reactividad ?? 'NP',
+      otros: n.otros ?? '-',
+    },
+
+    transporte: {
+      codRiesgo: t.cod_riesgo ?? 'NP',
+      nroOnu: t.nro_onu ?? 'NP',
+      grupoEmbalaje: t.grupo_embalaje ?? 'NP',
+      // 👇 traemos tal cual del back y lo normalizamos a string
+      clasImg: String(t.clas_img ?? '0'),
+      guia: t.guia ?? '',
+    },
+  };
+}
 
 }

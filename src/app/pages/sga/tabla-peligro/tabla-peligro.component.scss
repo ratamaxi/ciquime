@@ -99,3 +99,17 @@
   .cell.label { border-bottom: 1px solid #e6e6e6; }
   .split { justify-content: flex-start; }
 }
+
+.ghs-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ghs-icon {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  /* si tus archivos ya incluyen el rombo, no hace falta borde; si no, podés poner un borde leve */
+}
+.muted { opacity: .7; }

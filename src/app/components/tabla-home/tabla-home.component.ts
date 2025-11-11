@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { switchMap, take } from 'rxjs';
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
@@ -21,7 +22,7 @@ export interface Registro {
   templateUrl: './tabla-home.component.html',
   styleUrls: ['./tabla-home.component.scss'],
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   providers: [RegistrosService] // ← este puede quedarse si querés una instancia propia del service de registros
 })
 export class TablaHomeComponent {

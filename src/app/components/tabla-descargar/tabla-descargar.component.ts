@@ -136,19 +136,50 @@ public abrirFet(item: InsumoDescarga): void {
 }
 
   // ---------- Acciones ----------
-  public abrirFds(item: InsumoDescarga): void {
-    const openBlank = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
+public abrirFds(item: InsumoDescarga): void {
+  const openBlank = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
 
-    // FDS
-    if (!item.fdsFile) {
-      alert('No hay archivo FDS asociado.');
-      return;
-    }
-    const root = this.encodeForOldPortal(item.fdsFile); // clave para “Espa%C3%83%C2%B1ol…”
-    const rfn  = encodeURIComponent(item.producto);
-      console.log(`${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`)
-    openBlank(`${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`);
+  if (!item.fdsFile) {
+    alert('No hay archivo FDS asociado.');
+    return;
   }
+
+  const root = this.encodeLegacyRoot(item.fdsFile);
+  const rfn  = encodeURIComponent(item.producto ?? '');
+
+  const url = `${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`;
+  openBlank(url);
+}
+
+
+  // ——— Helpers ———
+/** Detecta si el string YA está en mojibake (ej: contiene "Ã" típico de utf8 mal decodificado) */
+private isMojibake(s: string): boolean {
+  return /Ã./.test(s);
+}
+
+/** Emula php utf8_decode: toma UTF-8 y lo representa como si fuera Latin-1 */
+private utf8ToLatin1(s: string): string {
+  const bytes = new TextEncoder().encode(s); // UTF-8 bytes
+  let out = '';
+  for (const b of bytes) out += String.fromCharCode(b); // cada byte -> char latin-1
+  return out;
+}
+
+/** Limpia artefactos comunes de doble mojibake (el famoso "Â") */
+private stripPhantomPairs(s: string): string {
+  // 0x83 = \u0083, 0xC2 = \u00C2
+  return s.replace(/\u0083\u00C2/g, '');
+}
+
+/** Codificación EXACTA para el PHP legado (root=) */
+private encodeLegacyRoot(name: string): string {
+  // si ya está mojibakeado, no “latin1-ices” otra vez
+  const base = this.isMojibake(name) ? name : this.utf8ToLatin1(name);
+  const cleaned = this.stripPhantomPairs(base);
+  return encodeURIComponent(cleaned);
+}
+
 
   // ---------- UI helpers ----------
   setTab(tab: Estado) {

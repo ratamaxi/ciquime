@@ -6,22 +6,11 @@ import { DescargasService } from 'src/app/services/descargas.service';
 import { RegistrosService } from 'src/app/services/registros.service';
 
 export interface NfpaTransporteFicha {
-  productName: string;   // header.nombre_producto
-  supplier: string;      // header.razonSocial
-  fuente: string;        // header.fuente
-  nfpa: {
-    salud: number | string;
-    inflamabilidad: number | string;
-    reactividad: number | string;
-    otros: string;
-  };
-  transporte: {
-    codRiesgo: string;       // transporte.cod_riesgo
-    nroOnu: string;          // transporte.nro_onu
-    grupoEmbalaje: string;   // transporte.grupo_embalaje
-    clasImg: string;         // transporte.clas_img
-    guia: string;            // transporte.guia
-  };
+  productName: string;
+  supplier: string;
+  fuente: string;
+  nfpa: { salud: number | string; inflamabilidad: number | string; reactividad: number | string; otros: string; };
+  transporte: { codRiesgo: string; nroOnu: string; grupoEmbalaje: string; clasImg: string; guia: string; };
 }
 
 @Component({
@@ -37,26 +26,26 @@ export class TablaNfpaComponent {
   private materiaId: string = '';
 
 
-  constructor(private readonly descargasService:DescargasService, private readonly registrosService:RegistrosService, private readonly route: ActivatedRoute){
+  constructor(private readonly descargasService: DescargasService, private readonly registrosService: RegistrosService, private readonly route: ActivatedRoute) {
     //this.descargasService.getPais().subscribe(resp => console.log(resp))
-     this.route.paramMap.pipe(take(1)).subscribe(pm => {
+    this.route.paramMap.pipe(take(1)).subscribe(pm => {
       const id = pm.get('id');
       id ? this.materiaId = id : this.materiaId = '';
     });
   }
 
-  get hasTransportClass(): boolean {
-    const v = this.ficha?.transporte?.clasImg;
-    return !!v && v !== '0' && v.toString().trim() !== '';
+  public getTransportImg(code: string | number | null | undefined): string {
+    const v = String(code ?? '0').trim();      // asegura string (incluye '0')
+    return `assets/iconos/${v}.png`;           // ej: assets/iconos/0.png
   }
 
   public onOpenFET(): void {
-  const url = this.registrosService.getFetUrl(this.materiaId);
-  window.open(url, '_blank', 'noopener,noreferrer');
+    const url = this.registrosService.getFetUrl(this.materiaId);
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
-  public openPdfBotonB(): void{
-  const url = `${window.location.origin}/assets/img/FIE_MERCOSUR_Parte_2.pdf`;
-  window.open(url, '_blank', 'noopener');
+  public openPdfBotonB(): void {
+    const url = `${window.location.origin}/assets/img/FIE_MERCOSUR_Parte_2.pdf`;
+    window.open(url, '_blank', 'noopener');
   }
 }

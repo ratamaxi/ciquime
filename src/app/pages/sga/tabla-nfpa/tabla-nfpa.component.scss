@@ -134,3 +134,12 @@
   .row.split .cell { padding: 0; }
   .transp-table .t-row { grid-template-columns: 1fr 1fr; }
 }
+
+.class-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: .5rem;
+}

@@ -15,30 +15,30 @@ export class DescargasService {
   private utils = `${this.base_url}/utils/legacy`;
   private idEmpresa: string = localStorage.getItem('id_empresa') ?? '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ---------- SGA (por pestaña) ----------
-  getSgaPeligros(materiaId: number): Observable<any> {
+  public getSgaPeligros(materiaId: number): Observable<any> {
     return this.http.get<SgaPeligroApi>(`${this.descargas}/sga/${materiaId}/peligros`);
   }
-  getSgaEpp(materiaId: number): Observable<any> {
+  public getSgaEpp(materiaId: number): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}/epp`);
   }
-  getSgaNfpa(materiaId: number): Observable<any> {
+  public getSgaNfpa(materiaId: number): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}/nfpa`);
   }
-  getSgaTratamiento(materiaId: number): Observable<any> {
+  public getSgaTratamiento(materiaId: number): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}/tratamiento`);
   }
-  getSgaEmergencia(materiaId: number): Observable<any> {
+  public getSgaEmergencia(materiaId: number): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}/emergencia`);
   }
-  getSgaAlmacenamiento(materiaId: number): Observable<any> {
+  public getSgaAlmacenamiento(materiaId: number): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}/almacenamiento`);
   }
 
   /** Versión “dispatcher” si usás /sga/:materiaId?tab=peligros|epp|... */
-  getSgaByTab(materiaId: number, tab: SgaTab): Observable<any> {
+  public getSgaByTab(materiaId: number, tab: SgaTab): Observable<any> {
     return this.http.get<any>(`${this.descargas}/sga/${materiaId}`, { params: { tab } });
   }
 
@@ -85,16 +85,22 @@ export class DescargasService {
     });
   }
 
-   public getPais(): Observable<any> {
+  public getPais(): Observable<any> {
     return this.http.get<any>(`${this.descargas}/pais/${this.idEmpresa}`);
   }
 
   public getEtiquetaMenos3LUrl(materiaId: number | string): string {
-  return `${this.descargas}/etiquetas/menos-3l/${materiaId}`;
-}
+    return `${this.descargas}/etiquetas/menos-3l/${materiaId}`;
+  }
 
   public getEtiquetaGenerica(materiaId: number | string, type: string): string {
-  return `${this.descargas}/legacy/etiquetas/${type}/${materiaId}`;
-}
+    return `${this.descargas}/legacy/etiquetas/${type}/${materiaId}`;
+  }
 
+  public getCertificadosCalidad(idUsuario: string): Observable<any> {
+    const body = {
+      id_usuario: idUsuario
+    }
+    return this.http.post<any>(`${this.descargas}/certificados/calidad`, body);
+  }
 }

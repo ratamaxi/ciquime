@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { take } from 'rxjs';
 import { RegistrosService } from 'src/app/services/registros.service';
+import { AppRoutingModule } from "src/app/app-routing.module";
+import { RouterModule } from '@angular/router';
 
 type EstadoCertificado = 'vigente' | 'vencido';
 
@@ -15,14 +17,12 @@ export interface CertificadoResumenItem {
 @Component({
   selector: 'app-certificados-resumen',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './certificados-resumen.component.html',
   styleUrls: ['./certificados-resumen.component.scss'],
 })
 export class CertificadosResumenComponent {
-  /** Título mostrado en la tarjeta */
-  @Input() titulo = 'Certificados a vencer';
-
+  public titulo = 'Certificados a vencer';
   /** Listado de certificados */
   public certificados: CertificadoResumenItem[] = [];
 

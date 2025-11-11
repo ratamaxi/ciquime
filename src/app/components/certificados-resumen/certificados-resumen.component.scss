@@ -76,3 +76,16 @@
   color: #6b7a90;
   font-size: 14px;
 }
+
+.btn-primary {
+  border: 0;
+  border-radius: 12px;
+  font-weight: 800;
+  padding: .7rem 1.1rem;
+  background: #0ea5e9; /* azul "Ver Más..." */
+  color: #fff;
+  cursor: pointer;
+  transition: filter .2s ease, transform .02s ease;
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: translateY(1px); }
+}

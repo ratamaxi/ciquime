@@ -27,28 +27,29 @@
             <span class="summary__value">{{ totalRegistros }}</span>
           </span>
         </div>
+
         <div class="panel__filters" aria-label="Controles de la tabla">
           <div class="filters__display">
             <span>Mostrar </span>
-            <select class="mx-3" aria-label="Cantidad de registros a mostrar">
-              <option>10</option>
-              <option selected>25</option>
-              <option>50</option>
+            <select class="mx-3" aria-label="Cantidad de registros a mostrar" disabled>
+              <option selected>8</option>
             </select>
-
             <span>registros</span>
           </div>
 
           <div class="filters__search">
             <label class="pt-2">Buscar:</label>
-            <input id="buscar-certificados" type="text" placeholder="Producto, fabricante…" />
+            <input id="buscar-certificados" type="text" placeholder="Producto, fabricante…" disabled />
           </div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="table-wrap" role="region" aria-live="polite">
+      <div *ngIf="loading" class="table-wrap muted p-3">Cargando certificados…</div>
+      <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
+
+      <div class="table-wrap" role="region" aria-live="polite" *ngIf="!loading && !error">
         <table>
           <thead>
             <tr>
@@ -69,7 +70,9 @@
               <td>{{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}</td>
               <td>{{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
               <td>
-                <span class="estado" [class.estado--vigente]="registro.estado === 'vigente'"
+                <span
+                  class="estado"
+                  [class.estado--vigente]="registro.estado === 'vigente'"
                   [class.estado--vencido]="registro.estado === 'vencido'">
                   {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
                 </span>
@@ -79,29 +82,25 @@
                   <svg viewBox="0 0 24 24">
                     <path
                       d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2.92 2.33h-.5v-.5l9.9-9.9.5.5-9.9 9.9ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
-                  </svg></button>
-                <button class="icon download" title="Eliminar">
+                  </svg>
+                </button>
+                <button class="icon download" title="Ver">
                   <svg viewBox="0 0 16 16">
                     <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
                     <path
                       d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
-                  </svg></button>
-                    <button class="icon download" title="Eliminar">
-                  <svg viewBox="0 0 16 16">
-                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
-                    <path
-                      d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
-                  </svg></button>
+                  </svg>
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="table-footer">
+      <div class="table-footer" *ngIf="!loading && !error">
         <div class="muted">
-          Mostrando registros del <b>1</b> al <b>{{ registros.length }}</b> de un total de <b>{{ totalRegistros }}</b>
-          registros
+          Mostrando registros del <b>1</b> al <b>{{ registros.length }}</b> de un total de
+          <b>{{ totalRegistros }}</b> registros
         </div>
         <div class="pager">
           <button type="button" class="btn" disabled>Anterior</button>

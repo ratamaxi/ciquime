@@ -1,7 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { DescargasService } from 'src/app/services/descargas.service';
 
 type Estado = 'vigente' | 'vencido';
+
+interface CertificadoApi {
+  usuario_id: number;
+  producto: string;
+  extraname: string | null;
+  nombre_calidoc: string | null;
+  fechacalidad: string;
+  aviso: number;
+  estado: Estado;
+  diasRestantes: number;
+}
 
 interface CertificadoCalidad {
   numeroInterno: string;
@@ -20,98 +32,93 @@ interface CertificadoCalidad {
   templateUrl: './certificados-calidad.component.html',
   styleUrls: ['./certificados-calidad.component.scss'],
 })
-export class CertificadosCalidadComponent {
-  registros: CertificadoCalidad[] = [
-    {
-      numeroInterno: '0001',
-      producto: '1,4-DIOXANO',
-      fabricante: 'MERCK S.A.',
-      certificado: 'AFVT_RNPUD 05204/78-21-12-2025.pdf',
-      fechaExpedicion: '2024-12-21',
-      fechaExpiracion: '2025-12-21',
-      estado: 'vigente',
-    },
-    {
-      numeroInterno: '0002',
-      producto: '1-HEPTANOL',
-      fabricante: 'SOMAR ANDINA S.A.',
-      certificado: 'AFVT_RNPUD 05205/78-19-11-2025.pdf',
-      fechaExpedicion: '2024-11-19',
-      fechaExpiracion: '2025-11-19',
-      estado: 'vigente',
-    },
-    {
-      numeroInterno: '0003',
-      producto: 'Ácido Nítrico 65%',
-      fabricante: 'AROMINA DEL SUR S.A.',
-      certificado: 'AFVT_RNPUD 05206/78-05-10-2024.pdf',
-      fechaExpedicion: '2023-10-05',
-      fechaExpiracion: '2024-10-05',
-      estado: 'vencido',
-    },
-    {
-      numeroInterno: '0004',
-      producto: 'Diisobutil Ftalato',
-      fabricante: 'MERCK S.A.',
-      certificado: 'AFVT_RNPUD 05207/78-14-08-2025.pdf',
-      fechaExpedicion: '2024-08-14',
-      fechaExpiracion: '2025-08-14',
-      estado: 'vigente',
-    },
-    {
-      numeroInterno: '0005',
-      producto: 'Agar de contacto (CASO) + TTC (RF2)',
-      fabricante: 'AROMINA DEL SUR S.A.',
-      certificado: 'AFVT_RNPUD 05208/78-28-07-2025.pdf',
-      fechaExpedicion: '2024-07-28',
-      fechaExpiracion: '2025-07-28',
-      estado: 'vigente',
-    },
-    {
-      numeroInterno: '0006',
-      producto: 'Propylene Glycol',
-      fabricante: 'MERCK S.A.',
-      certificado: 'AFVT_RNPUD 05209/78-14-02-2025.pdf',
-      fechaExpedicion: '2024-02-14',
-      fechaExpiracion: '2025-02-14',
-      estado: 'vigente',
-    },
-    {
-      numeroInterno: '0007',
-      producto: 'Tergazyme® Enzyme Detergent',
-      fabricante: 'SOMAR ANDINA S.A.',
-      certificado: 'AFVT_RNPUD 05210/78-18-03-2024.pdf',
-      fechaExpedicion: '2023-03-18',
-      fechaExpiracion: '2024-03-18',
-      estado: 'vencido',
-    },
-    {
-      numeroInterno: '0008',
-      producto: 'HEPES Free, pH 7.0',
-      fabricante: 'MERCK S.A.',
-      certificado: 'AFVT_RNPUD 05211/78-01-01-2026.pdf',
-      fechaExpedicion: '2025-01-01',
-      fechaExpiracion: '2026-01-01',
-      estado: 'vigente',
-    },
-  ];
+export class CertificadosCalidadComponent implements OnInit {
+  registros: CertificadoCalidad[] = [];
 
-  page = 1;
-  pageSize = 8;
+  // estados UI
+  loading = false;
+  error: string | null = null;
 
+  // paginación (si luego paginás en tabla)
+  public page = 1;
+  public pageSize = 8;
+
+  private idUser: string = localStorage.getItem('idUser') ?? '';
+
+  constructor(private readonly descargasService: DescargasService) {}
+
+  ngOnInit(): void {
+    this.cargar();
+  }
+
+  private cargar(): void {
+    if (!this.idUser) {
+      this.error = 'Usuario no identificado.';
+      return;
+    }
+    this.loading = true;
+    this.error = null;
+
+    this.descargasService.getCertificadosCalidad(this.idUser).subscribe({
+      next: (resp) => {
+        console.log(resp)
+        const data: CertificadoApi[] = resp?.data ?? [];
+        this.registros = data.map(this.mapApiToUi);
+        this.loading = false;
+      },
+      error: (e) => {
+        console.error(e);
+        this.error = 'No se pudieron cargar los certificados.';
+        this.loading = false;
+      },
+    });
+  }
+
+  /** Mapea el item del backend al modelo de UI */
+  private mapApiToUi = (r: CertificadoApi): CertificadoCalidad => {
+    const expedicion = this.parseDateYmd(r.fechacalidad);      // usamos fechacalidad como “expedición”
+    const expiracion = this.calcExpFromDiasRestantes(r.diasRestantes);
+
+    return {
+      numeroInterno: r.extraname?.trim() || '--',
+      producto: r.producto || '',
+      fabricante: '-',                          // el API actual no lo envía
+      certificado: r.nombre_calidoc || '',
+      fechaExpedicion: expedicion,
+      fechaExpiracion: expiracion,
+      estado: (r.estado === 'vigente' || r.estado === 'vencido') ? r.estado : (r.diasRestantes > 0 ? 'vigente' : 'vencido'),
+    };
+  };
+
+  /** Normaliza fecha del back a 'YYYY-MM-DD' (para el date pipe después) */
+  private parseDateYmd(v: string): string {
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '';
+    // ISO yyyy-mm-dd
+    return d.toISOString().slice(0, 10);
+  }
+
+  /** Calcula fecha de expiración en base a hoy + diasRestantes */
+  private calcExpFromDiasRestantes(diasRestantes: number): string {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const exp = new Date(today);
+    exp.setDate(today.getDate() + (Number.isFinite(diasRestantes) ? diasRestantes : 0));
+    return exp.toISOString().slice(0, 10);
+  }
+
+  // KPIs
   get totalRegistros(): number {
     return this.registros.length;
   }
-
   get vigentes(): number {
     return this.registros.filter((r) => r.estado === 'vigente').length;
   }
-
   get vencidos(): number {
     return this.registros.filter((r) => r.estado === 'vencido').length;
   }
 
-  trackByNumero(_index: number, item: CertificadoCalidad): string {
-    return item.numeroInterno;
+  public trackByNumero(_index: number, item: CertificadoCalidad): string {
+    return `${item.numeroInterno}|${item.producto}|${item.certificado}`;
   }
 }

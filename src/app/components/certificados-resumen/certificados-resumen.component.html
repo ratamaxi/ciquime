@@ -1,6 +1,9 @@
 <div class="card" role="group" [attr.aria-label]="titulo">
-  <div class="header">
+  <div class="header d-flex justify-content-between align-items-center">
     <h3 class="title">{{ titulo }}</h3>
+      <div class="card__footer">
+    <button class="btn-primary" routerLink="/panel/certificados-calidad" type="button" >Ver Más...</button>
+  </div>
   </div>
 
   <!-- Vigentes -->
