@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // <- para [(ngModel)]
 import { DescargasService } from 'src/app/services/descargas.service';
 
 type Estado = 'vigente' | 'vencido';
@@ -20,28 +22,35 @@ interface CertificadoCalidad {
   producto: string;
   fabricante: string;
   certificado: string;
-  fechaExpedicion: string;
-  fechaExpiracion: string;
+  fechaExpedicion: string;  // yyyy-mm-dd o ''
+  fechaExpiracion: string;  // yyyy-mm-dd o '' para mostrar '-'
   estado: Estado;
 }
 
 @Component({
   selector: 'app-certificados-calidad',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './certificados-calidad.component.html',
   styleUrls: ['./certificados-calidad.component.scss'],
 })
 export class CertificadosCalidadComponent implements OnInit {
+  // Datos base
   registros: CertificadoCalidad[] = [];
+
+  // Derivados para la UI
+  public filtered: CertificadoCalidad[] = [];  // <- público para la vista
+  public displayed: CertificadoCalidad[] = [];
 
   // estados UI
   loading = false;
   error: string | null = null;
 
-  // paginación (si luego paginás en tabla)
+  // búsqueda y paginación
+  public query = '';
   public page = 1;
-  public pageSize = 8;
+  public pageSize = 10;
+  public pageSizeOpts = [10, 25, 50, 100];
 
   private idUser: string = localStorage.getItem('idUser') ?? '';
 
@@ -51,6 +60,17 @@ export class CertificadosCalidadComponent implements OnInit {
     this.cargar();
   }
 
+  // --------- Acciones UI (PDF) ----------
+  public openCertificado(registro: CertificadoCalidad): void {
+    const file = (registro?.certificado || '').trim();
+    if (!file) return;
+
+    const base = 'https://ciquime.com.ar/PDF/doc_calidad';
+    const url  = `${base}/${encodeURIComponent(file)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  // --------- Carga de datos ----------
   private cargar(): void {
     if (!this.idUser) {
       this.error = 'Usuario no identificado.';
@@ -61,9 +81,12 @@ export class CertificadosCalidadComponent implements OnInit {
 
     this.descargasService.getCertificadosCalidad(this.idUser).subscribe({
       next: (resp) => {
-        console.log(resp)
         const data: CertificadoApi[] = resp?.data ?? [];
         this.registros = data.map(this.mapApiToUi);
+
+        // Inicializar filtros/paginación
+        this.applyFilters();
+
         this.loading = false;
       },
       error: (e) => {
@@ -76,17 +99,23 @@ export class CertificadosCalidadComponent implements OnInit {
 
   /** Mapea el item del backend al modelo de UI */
   private mapApiToUi = (r: CertificadoApi): CertificadoCalidad => {
-    const expedicion = this.parseDateYmd(r.fechacalidad);      // usamos fechacalidad como “expedición”
-    const expiracion = this.calcExpFromDiasRestantes(r.diasRestantes);
+    const expedicion = this.parseDateYmd(r.fechacalidad); // -> Fecha Expedición
+    // Si tu backend NO trae una segunda fecha, mostramos '-'
+    const expiracion = ''; // <- quedará '-' en la vista
 
     return {
       numeroInterno: r.extraname?.trim() || '--',
       producto: r.producto || '',
-      fabricante: '-',                          // el API actual no lo envía
+      fabricante: '-', // el API actual no lo envía
       certificado: r.nombre_calidoc || '',
       fechaExpedicion: expedicion,
       fechaExpiracion: expiracion,
-      estado: (r.estado === 'vigente' || r.estado === 'vencido') ? r.estado : (r.diasRestantes > 0 ? 'vigente' : 'vencido'),
+      estado:
+        r.estado === 'vigente' || r.estado === 'vencido'
+          ? r.estado
+          : r.diasRestantes > 0
+          ? 'vigente'
+          : 'vencido',
     };
   };
 
@@ -94,20 +123,77 @@ export class CertificadosCalidadComponent implements OnInit {
   private parseDateYmd(v: string): string {
     const d = new Date(v);
     if (isNaN(d.getTime())) return '';
-    // ISO yyyy-mm-dd
     return d.toISOString().slice(0, 10);
   }
 
-  /** Calcula fecha de expiración en base a hoy + diasRestantes */
-  private calcExpFromDiasRestantes(diasRestantes: number): string {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const exp = new Date(today);
-    exp.setDate(today.getDate() + (Number.isFinite(diasRestantes) ? diasRestantes : 0));
-    return exp.toISOString().slice(0, 10);
+  // --------- Búsqueda + paginado ----------
+  onQueryChange(v: string): void {
+    this.query = v;
+    this.applyFilters();
   }
 
-  // KPIs
+  onChangePageSize(v: number): void {
+    this.pageSize = Number(v) || 10;
+    this.page = 1;
+    this.applyPagination();
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page--;
+      this.applyPagination();
+    }
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page++;
+      this.applyPagination();
+    }
+  }
+
+  private applyFilters(): void {
+    const q = this.query.trim().toLowerCase();
+
+    this.filtered = !q
+      ? [...this.registros]
+      : this.registros.filter((r) => {
+          const hay = [
+            r.numeroInterno,
+            r.producto,
+            r.fabricante,
+            r.certificado,
+          ]
+            .join(' ')
+            .toLowerCase();
+          return hay.includes(q);
+        });
+
+    this.page = 1;
+    this.applyPagination();
+  }
+
+  private applyPagination(): void {
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.displayed = this.filtered.slice(start, end);
+  }
+
+  // --------- Getters para la vista ----------
+  get totalPages(): number {
+    return Math.max(1, Math.ceil((this.filtered?.length || 0) / this.pageSize));
+  }
+
+  get showingFrom(): number {
+    if (!this.filtered?.length) return 0;
+    return (this.page - 1) * this.pageSize + 1;
+    }
+
+  get showingTo(): number {
+    return Math.min(this.filtered?.length || 0, this.page * this.pageSize);
+  }
+
+  // KPIs (sobre registros totales cargados)
   get totalRegistros(): number {
     return this.registros.length;
   }

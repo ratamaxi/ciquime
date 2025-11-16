@@ -31,24 +31,33 @@
         <div class="panel__filters" aria-label="Controles de la tabla">
           <div class="filters__display">
             <span>Mostrar </span>
-            <select class="mx-3" aria-label="Cantidad de registros a mostrar" disabled>
-              <option selected>8</option>
+            <select class="mx-3"
+                    aria-label="Cantidad de registros a mostrar"
+                    [(ngModel)]="pageSize"
+                    (ngModelChange)="onChangePageSize($event)">
+              <option *ngFor="let opt of pageSizeOpts" [value]="opt">{{ opt }}</option>
             </select>
             <span>registros</span>
           </div>
 
           <div class="filters__search">
-            <label class="pt-2">Buscar:</label>
-            <input id="buscar-certificados" type="text" placeholder="Producto, fabricante…" disabled />
+            <label class="pt-2" for="buscar-certificados">Buscar:</label>
+            <input id="buscar-certificados"
+                   type="text"
+                   placeholder="Producto, fabricante…"
+                   [(ngModel)]="query"
+                   (ngModelChange)="onQueryChange($event)" />
           </div>
         </div>
       </div>
     </div>
 
     <div class="card">
+      <!-- estados -->
       <div *ngIf="loading" class="table-wrap muted p-3">Cargando certificados…</div>
       <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
 
+      <!-- tabla -->
       <div class="table-wrap" role="region" aria-live="polite" *ngIf="!loading && !error">
         <table>
           <thead>
@@ -63,12 +72,27 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let registro of registros; trackBy: trackByNumero">
+            <tr *ngFor="let registro of displayed; trackBy: trackByNumero">
               <td class="text-strong">{{ registro.numeroInterno }}</td>
               <td>{{ registro.producto }}</td>
               <td>{{ registro.fabricante }}</td>
-              <td>{{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}</td>
-              <td>{{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}</td>
+
+              <!-- Expedición (del campo fechacalidad parseado a YYYY-MM-DD) -->
+              <td>
+                <ng-container *ngIf="registro.fechaExpedicion; else noExped">
+                  {{ registro.fechaExpedicion | date: 'dd/MM/yyyy' }}
+                </ng-container>
+                <ng-template #noExped>-</ng-template>
+              </td>
+
+              <!-- Expiración: si no hay segunda fecha, mostrar '-' -->
+              <td>
+                <ng-container *ngIf="registro.fechaExpiracion; else noExp">
+                  {{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}
+                </ng-container>
+                <ng-template #noExp>-</ng-template>
+              </td>
+
               <td>
                 <span
                   class="estado"
@@ -77,15 +101,25 @@
                   {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
                 </span>
               </td>
+
               <td class="center">
-                <button class="icon" title="Editar">
+                <button
+                  class="icon"
+                  title="Editar"
+                  [routerLink]="['/panel/certificados-calidad', registro.numeroInterno, 'editar']"
+                  [state]="{ cert: registro }">
                   <svg viewBox="0 0 24 24">
                     <path
                       d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2.92 2.33h-.5v-.5l9.9-9.9.5.5-9.9 9.9ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z" />
                   </svg>
                 </button>
-                <button class="icon download" title="Ver">
-                  <svg viewBox="0 0 16 16">
+
+                <button
+                  class="icon download"
+                  title="Ver PDF"
+                  *ngIf="registro.certificado && registro.certificado.trim()"
+                  (click)="openCertificado(registro)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
                     <path
                       d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
@@ -97,14 +131,29 @@
         </table>
       </div>
 
+      <!-- footer/paginador -->
       <div class="table-footer" *ngIf="!loading && !error">
         <div class="muted">
-          Mostrando registros del <b>1</b> al <b>{{ registros.length }}</b> de un total de
-          <b>{{ totalRegistros }}</b> registros
+          Mostrando registros del
+          <b>{{ showingFrom || 0 }}</b>
+          al
+          <b>{{ showingTo || 0 }}</b>
+          de un total de
+          <b>{{ (filtered?.length || 0) }}</b>
+          registros
         </div>
+
         <div class="pager">
-          <button type="button" class="btn" disabled>Anterior</button>
-          <button type="button" class="btn" disabled>Siguiente</button>
+          <button type="button" class="btn" (click)="prevPage()" [disabled]="page === 1">
+            Anterior
+          </button>
+         <button
+  type="button"
+  class="btn"
+  (click)="nextPage()"
+  [disabled]="page >= totalPages">
+  Siguiente
+</button>
         </div>
       </div>
     </div>
