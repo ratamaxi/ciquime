@@ -211,3 +211,6 @@
     </div>
   </form>
 </div>
+
+<app-spinner *ngIf="loading" text="Cargando insumo…" [fullscreen]="true"></app-spinner>
+<app-spinner *ngIf="saving" text="Guardando cambios…" [fullscreen]="true"></app-spinner>

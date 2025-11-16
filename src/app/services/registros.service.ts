@@ -5,6 +5,8 @@ import { environment } from 'src/environments/environment';
 import { AgregarInsumoAUsuario, BuscarInsumoQuery, BuscarInsumoResponseItem, BuscarInsumoUI, CrearInsumoResp, CrearSgaResp, EditarInsumoRequest, EstadisticasInsumosData, Estado, InsertResponse, Insumo } from '../interfaces/registros.interface';
 import { FdsResponse } from '../interfaces/descargas.interface';
 import { CertificadoResumenItem } from '../components/certificados-resumen/certificados-resumen.component';
+import { wakeUpRetry } from '../utils/wake-up-retry';
+
 
 interface ApiResp {
   ok: boolean;
@@ -20,13 +22,16 @@ export class RegistrosService {
   constructor(private http: HttpClient) { }
 
   public obtenerRegistroData(userId: number): Observable<any> {
-    return this.http.get<any>(`${this.base_url}/registros/data/${userId}`);
+    return this.http
+      .get<any>(`${this.base_url}/registros/data/${userId}`)
+      .pipe(wakeUpRetry());
   }
 
   public obtenerEstadisticaInsumo(usuarioId: number): Observable<EstadisticasInsumosData> {
     return this.http
       .get<EstadisticasInsumosData>(`${this.base_url}/registros/estadistica/${usuarioId}`, { params: { usuarioId } as any })
       .pipe(
+        wakeUpRetry(),
         map(r => ({
           aprobados: r?.aprobados ?? 0,
           pendientes: r?.pendientes ?? 0,
@@ -56,6 +61,7 @@ export class RegistrosService {
         { params }
       )
       .pipe(
+        wakeUpRetry(),
         map(rows =>
           (rows ?? []).map((r): BuscarInsumoUI => {
             // Fix opcional de acentos rotos (ej: EspaÃ±ol)
@@ -90,7 +96,9 @@ export class RegistrosService {
 
   // (ojo con el nombre, lo dejé como lo tenías)
   public instertarInsumoUsuario(userId: number): Observable<any> {
-    return this.http.get<any>(`${this.base_url}/registros/data/${userId}`);
+    return this.http
+      .get<any>(`${this.base_url}/registros/data/${userId}`)
+      .pipe(wakeUpRetry());
   }
 
   public addInsumos(
@@ -111,6 +119,7 @@ export class RegistrosService {
     if (t) headers = headers.set('Authorization', `Bearer ${t}`);
 
     return this.http.post<InsertResponse>(url, body, { headers }).pipe(
+      wakeUpRetry(),
       catchError((err) => {
         const msg = err?.error?.msj || 'Error al insertar insumos';
         return throwError(() => new Error(msg));
@@ -130,6 +139,7 @@ export class RegistrosService {
     if (t) headers = headers.set('Authorization', `Bearer ${t}`);
 
     return this.http.post<CrearInsumoResp>(url, formData, { headers }).pipe(
+      wakeUpRetry({ maxAttempts: 5 }),
       catchError(err => {
         const msg = err?.error?.msj || 'Error al registrar insumo';
         return throwError(() => new Error(msg));
@@ -140,6 +150,7 @@ export class RegistrosService {
   public getInsumosParaEditar(estado: Estado, idUsuario: number) {
     const url = `${this.base_url}/registros/ver/editar/insumo/${idUsuario}/${estado}`;
     return this.http.get<ApiResp>(url).pipe(
+      wakeUpRetry(),
       // 👈 invocá la función curried con el estado
       map(resp => (resp?.data ?? []).map(this.mapRowToInsumo(estado))),
       catchError(err => {
@@ -175,22 +186,22 @@ export class RegistrosService {
 
   public eliminarInsumo(body: any): Observable<any> {
     let apiUrl = `${this.base_url}/registros/eliminar/insumo`;
-    return this.http.post(apiUrl, body);
+    return this.http.post(apiUrl, body).pipe(wakeUpRetry());
   }
 
   public obtenerDataEditarUsuario(matempresa: string, empresa_id: string, usuario_id: string): Observable<any> {
     let apiUrl = `${this.base_url}/registros/data/editar/insumo/${matempresa}/${empresa_id}/${usuario_id}`;
-    return this.http.get(apiUrl);
+    return this.http.get(apiUrl).pipe(wakeUpRetry());
   }
 
   public obtenerDataSectorInsumo(empresa_id: string): Observable<any> {
     let apiUrl = `${this.base_url}/registros/data/sector/insumo/${empresa_id}`;
-    return this.http.get(apiUrl);
+    return this.http.get(apiUrl).pipe(wakeUpRetry());
   }
 
   public obtenerDataFds(): Observable<FdsResponse> {
     const apiUrl = `${this.base_url}/descargas/data/${this.idUsuario}`;
-    return this.http.get<FdsResponse>(apiUrl);
+    return this.http.get<FdsResponse>(apiUrl).pipe(wakeUpRetry());
   }
 
   public getHsUrl(materiaId: string): string {
@@ -203,17 +214,18 @@ export class RegistrosService {
 
   public modificarInsumo(body: EditarInsumoRequest): Observable<void> {
     const apiUrl = `${this.base_url}/registros/modificar/insumo/${this.idUsuario}`;
-    return this.http.put<void>(apiUrl, body);
+    return this.http.put<void>(apiUrl, body).pipe(wakeUpRetry());
   }
 
   public agregarInsumoUsuario(body: AgregarInsumoAUsuario): Observable<void> {
       const apiUrl = `${this.base_url}/registros/agregar/insumo/usuario`;
-      return this.http.post<void>(apiUrl, body);
+      return this.http.post<void>(apiUrl, body).pipe(wakeUpRetry());
   }
 
    public obtenerCertificadoAVencer(): Observable<{ok: boolean, data:  CertificadoResumenItem[]}> {
     const apiUrl = `${this.base_url}/registros/obtener/certificados/${this.idUsuario}`;
-    return this.http.get<{ok: boolean, data:  CertificadoResumenItem[]}>(apiUrl);
+    return this.http
+      .get<{ok: boolean, data:  CertificadoResumenItem[]}>(apiUrl)
+      .pipe(wakeUpRetry());
   }
 }
-

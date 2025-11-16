@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 import { UsuarioService } from 'src/app/services/usuario.service';
 
 type UsuarioFila = {
@@ -16,7 +17,7 @@ type UsuarioFila = {
   templateUrl: './data-usuario.component.html',
   styleUrls: ['./data-usuario.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, FormsModule]
+  imports: [CommonModule, FormsModule, RouterModule, FormsModule, SpinnerComponent]
 })
 export class DataUsuarioComponent implements OnInit {
 

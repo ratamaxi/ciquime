@@ -3,6 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 import { AgregarInsumoAUsuario, BuscarInsumoResponseItem, BuscarInsumoUI } from 'src/app/interfaces/registros.interface';
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
@@ -13,7 +14,7 @@ type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 @Component({
   selector: 'app-buscar-insumo',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, SpinnerComponent],
   templateUrl: './buscar-insumo.component.html',
   styleUrls: ['./buscar-insumo.component.scss'],
 })

@@ -55,8 +55,10 @@
 
 <!-- Estados -->
 <div *ngIf="loading" class="page__container">
-  <p>Cargando usuario…</p>
+  <app-spinner text="Cargando usuario…"></app-spinner>
 </div>
 <div *ngIf="!loading && error" class="page__container">
   <p class="text-danger">{{ error }}</p>
 </div>
+
+<app-spinner *ngIf="saving" text="Guardando usuario…" [fullscreen]="true"></app-spinner>

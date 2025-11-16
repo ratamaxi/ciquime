@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UsuarioService } from 'src/app/services/usuario.service';
 import Swal from "sweetalert2";
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 interface UsuarioApiData {
   id: number;
@@ -24,7 +25,7 @@ interface UsuarioFormValue {
   standalone: true,
   templateUrl: './editar-usuario.component.html',
   styleUrls: ['./editar-usuario.component.scss'],
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, SpinnerComponent],
 })
 export class EditarUsuarioComponent implements OnInit {
   form: FormGroup = this.fb.group({

@@ -46,7 +46,7 @@ const routes: Routes = [
       { path: 'etiquetas/:id', component: EtiquetasComponent },
       { path: 'descarga-etiqueta', component: DescargaEtiquetaComponent },
       {path: 'certificados-calidad', component: CertificadosCalidadComponent},
-      {path: 'certificados-calidad/:numero/editar', component: EditarCertificadoCalidadComponent },
+      {path: 'certificados-calidad/editar', component: EditarCertificadoCalidadComponent },
       { path: 'data-user/:id/editar', component: EditarUsuarioComponent },
     ],
   },

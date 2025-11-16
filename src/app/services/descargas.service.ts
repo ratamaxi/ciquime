@@ -4,6 +4,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SgaPeligroApi } from '../interfaces/descargas.interface';
+import { wakeUpRetry } from '../utils/wake-up-retry';
 
 type SgaTab = 'peligros' | 'epp' | 'nfpa' | 'tratamiento' | 'emergencia' | 'almacenamiento';
 
@@ -19,27 +20,41 @@ export class DescargasService {
 
   // ---------- SGA (por pestaña) ----------
   public getSgaPeligros(materiaId: number): Observable<any> {
-    return this.http.get<SgaPeligroApi>(`${this.descargas}/sga/${materiaId}/peligros`);
+    return this.http
+      .get<SgaPeligroApi>(`${this.descargas}/sga/${materiaId}/peligros`)
+      .pipe(wakeUpRetry());
   }
   public getSgaEpp(materiaId: number): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/epp`);
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}/epp`)
+      .pipe(wakeUpRetry());
   }
   public getSgaNfpa(materiaId: number): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/nfpa`);
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}/nfpa`)
+      .pipe(wakeUpRetry());
   }
   public getSgaTratamiento(materiaId: number): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/tratamiento`);
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}/tratamiento`)
+      .pipe(wakeUpRetry());
   }
   public getSgaEmergencia(materiaId: number): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/emergencia`);
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}/emergencia`)
+      .pipe(wakeUpRetry());
   }
   public getSgaAlmacenamiento(materiaId: number): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}/almacenamiento`);
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}/almacenamiento`)
+      .pipe(wakeUpRetry());
   }
 
   /** Versión “dispatcher” si usás /sga/:materiaId?tab=peligros|epp|... */
   public getSgaByTab(materiaId: number, tab: SgaTab): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/sga/${materiaId}`, { params: { tab } });
+    return this.http
+      .get<any>(`${this.descargas}/sga/${materiaId}`, { params: { tab } })
+      .pipe(wakeUpRetry());
   }
 
   // ---------- HSO / FET (redirigen al portal viejo desde tu backend) ----------
@@ -49,6 +64,7 @@ export class DescargasService {
       observe: 'response',
       responseType: 'text' as 'json'
     }).pipe(
+      wakeUpRetry(),
       map((resp: HttpResponse<any>) => {
         const loc = resp.headers.get('Location');
         if (!loc) throw new Error('No se recibió Location en la respuesta');
@@ -71,6 +87,7 @@ export class DescargasService {
       observe: 'response',
       responseType: 'text' as 'json'
     }).pipe(
+      wakeUpRetry(),
       map((resp: HttpResponse<any>) => {
         const loc = resp.headers.get('Location');
         if (!loc) throw new Error('No se recibió Location en la respuesta');
@@ -86,7 +103,9 @@ export class DescargasService {
   }
 
   public getPais(): Observable<any> {
-    return this.http.get<any>(`${this.descargas}/pais/${this.idEmpresa}`);
+    return this.http
+      .get<any>(`${this.descargas}/pais/${this.idEmpresa}`)
+      .pipe(wakeUpRetry());
   }
 
   public getEtiquetaMenos3LUrl(materiaId: number | string): string {
@@ -101,6 +120,8 @@ export class DescargasService {
     const body = {
       id_usuario: idUsuario
     }
-    return this.http.post<any>(`${this.descargas}/certificados/calidad`, body);
+    return this.http
+      .post<any>(`${this.descargas}/certificados/calidad`, body)
+      .pipe(wakeUpRetry({ maxAttempts: 5, baseDelayMs: 4000 }));
   }
 }

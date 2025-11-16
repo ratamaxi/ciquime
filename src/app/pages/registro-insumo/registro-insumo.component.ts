@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 type TipoRegistro = 'nuevo' | 'actualizacion';
 type Visualizacion = 'privado' | 'publico';
@@ -14,7 +15,7 @@ type Visualizacion = 'privado' | 'publico';
   templateUrl: './registro-insumo.component.html',
   styleUrls: ['./registro-insumo.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, SpinnerComponent],
   providers: [RegistrosService]
 })
 export class RegistroInsumoComponent implements OnInit {

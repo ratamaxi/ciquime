@@ -13,6 +13,7 @@ import { TablaTratamientoComponent, TratamientoFicha } from '../tabla-tratamient
 
 import { DescargasService } from 'src/app/services/descargas.service';
 import { NfpaTransporteFicha, SgaFicha } from 'src/app/interfaces/descargas.interface';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 type TabKey = 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm';
 
@@ -28,7 +29,8 @@ type TabKey = 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm';
     TablaNfpaComponent,
     TablaTratamientoComponent,
     TablaEmergenciaComponent,
-    TablaAlmacenamientoComponent
+    TablaAlmacenamientoComponent,
+    SpinnerComponent
   ]
 })
 export class SgaSeleccionadoComponent implements OnInit, OnDestroy {

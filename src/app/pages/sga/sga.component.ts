@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DescargasService } from 'src/app/services/descargas.service';
 import { RouterModule } from '@angular/router';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 @Component({
@@ -15,7 +16,7 @@ type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
   templateUrl: './sga.component.html',
   styleUrls: ['./sga.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, SpinnerComponent]
 })
 export class SgaComponent  implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject();

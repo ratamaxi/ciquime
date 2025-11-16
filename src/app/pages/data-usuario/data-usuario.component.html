@@ -17,8 +17,9 @@
         </div>
       </div>
 
-      <div *ngIf="loading" class="mt-2">Cargando…</div>
-      <div *ngIf="!loading && error" class="mt-2 text-danger">{{ error }}</div>
+  <div *ngIf="loading" class="mt-2">
+      <app-spinner text="Buscando insumos…"></app-spinner>
+    </div>      <div *ngIf="!loading && error" class="mt-2 text-danger">{{ error }}</div>
 
       <table class="table table-striped" *ngIf="!loading && !error">
         <thead>

@@ -10,6 +10,7 @@ import {
   firstValueFrom,
 } from 'rxjs';
 import { EmpresaTercero } from '../interfaces/user.interface';
+import { wakeUpRetry } from '../utils/wake-up-retry';
 
 export interface UserData {
   id_usuario: number;
@@ -49,6 +50,7 @@ export class UsuarioService {
       this.userRequest$ = this.http
         .get<UserData>(`${this.baseUrl}/usuario/data/usuario/${userName}`)
         .pipe(
+          wakeUpRetry({ maxAttempts: 5 }),
           tap((u: UserData) => {
             localStorage.setItem('idUser', String(u.id_usuario))
             localStorage.setItem('id_empresa', String(u.id_empresa))
@@ -89,6 +91,7 @@ export class UsuarioService {
     return this.http
       .get<EmpresaTercero[]>(`${this.baseUrl}/usuario/empresas`)
       .pipe(
+        wakeUpRetry(),
         // Aseguro tipos y opcionalmente normalizo acentos
         map(rows => (rows ?? []).map(e => ({
           id: Number(e.id),
@@ -98,7 +101,9 @@ export class UsuarioService {
   }
 
   public getDataUsuario(id: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/usuario/info/usuario/${id}`)
+    return this.http
+      .get<any>(`${this.baseUrl}/usuario/info/usuario/${id}`)
+      .pipe(wakeUpRetry());
   }
 
   public updateUsuario(
@@ -115,7 +120,9 @@ export class UsuarioService {
       body.password = data.contrasena.trim();
     }
 
-    return this.http.put(`${this.baseUrl}/usuario/info/usuario/${id}`, body);
+    return this.http
+      .put(`${this.baseUrl}/usuario/info/usuario/${id}`, body)
+      .pipe(wakeUpRetry());
   }
 
 

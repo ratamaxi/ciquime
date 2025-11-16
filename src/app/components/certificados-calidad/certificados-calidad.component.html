@@ -54,8 +54,9 @@
 
     <div class="card">
       <!-- estados -->
-      <div *ngIf="loading" class="table-wrap muted p-3">Cargando certificados…</div>
-      <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
+<div *ngIf="loading" class="table-wrap muted p-3">
+        <app-spinner text="Cargando certificados…"></app-spinner>
+      </div>      <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
 
       <!-- tabla -->
       <div class="table-wrap" role="region" aria-live="polite" *ngIf="!loading && !error">
@@ -106,7 +107,7 @@
                 <button
                   class="icon"
                   title="Editar"
-                  [routerLink]="['/panel/certificados-calidad', registro.numeroInterno, 'editar']"
+                  [routerLink]="['/panel/certificados-calidad/editar']"
                   [state]="{ cert: registro }">
                   <svg viewBox="0 0 24 24">
                     <path
@@ -139,7 +140,7 @@
           al
           <b>{{ showingTo || 0 }}</b>
           de un total de
-          <b>{{ (filtered?.length || 0) }}</b>
+          <b>{{ (filtered.length || 0) }}</b>
           registros
         </div>
 

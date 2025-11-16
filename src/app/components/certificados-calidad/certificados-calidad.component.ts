@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; // <- para [(ngModel)]
+import { FormsModule } from '@angular/forms';
 import { DescargasService } from 'src/app/services/descargas.service';
+import { SpinnerComponent } from '../spinner/spinner.component';
 
 type Estado = 'vigente' | 'vencido';
 
@@ -22,15 +23,15 @@ interface CertificadoCalidad {
   producto: string;
   fabricante: string;
   certificado: string;
-  fechaExpedicion: string;  // yyyy-mm-dd o ''
-  fechaExpiracion: string;  // yyyy-mm-dd o '' para mostrar '-'
+  fechaExpedicion: string;
+  fechaExpiracion: string;
   estado: Estado;
 }
 
 @Component({
   selector: 'app-certificados-calidad',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, SpinnerComponent],
   templateUrl: './certificados-calidad.component.html',
   styleUrls: ['./certificados-calidad.component.scss'],
 })
@@ -39,7 +40,7 @@ export class CertificadosCalidadComponent implements OnInit {
   registros: CertificadoCalidad[] = [];
 
   // Derivados para la UI
-  public filtered: CertificadoCalidad[] = [];  // <- público para la vista
+  public filtered: CertificadoCalidad[] = [];
   public displayed: CertificadoCalidad[] = [];
 
   // estados UI

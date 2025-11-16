@@ -11,8 +11,9 @@
       </div>
 
       <!-- Estados de carga / error -->
-      <div *ngIf="loadingTab" class="mt-2">Cargando {{ activeLabel }}…</div>
-      <div *ngIf="!loadingTab && errorTab" class="mt-2 text-danger">{{ errorTab }}</div>
+  <div *ngIf="loadingTab" class="mt-2">
+        <app-spinner [text]="'Cargando ' + activeLabel + '…'"></app-spinner>
+      </div>      <div *ngIf="!loadingTab && errorTab" class="mt-2 text-danger">{{ errorTab }}</div>
 
       <!-- Contenido por pestaña -->
       <ng-container [ngSwitch]="active">

@@ -7,13 +7,14 @@ import { ApiInsumo, ApiProducto, ApiResp, EditarInsumoRequest, Estado, SectorIns
 import { FixUtf8Pipe } from 'src/app/pipe/string.pipe';
 import Swal from "sweetalert2";
 import { RegistrosService } from 'src/app/services/registros.service';
+import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-editar-insumo',
   templateUrl: './editar-insumo.component.html',
   styleUrls: ['./editar-insumo.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FixUtf8Pipe, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FixUtf8Pipe, RouterModule, SpinnerComponent],
 })
 export class EditarInsumoComponent implements OnInit {
   public form: FormGroup;
