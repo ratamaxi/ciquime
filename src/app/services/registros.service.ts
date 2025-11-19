@@ -4,8 +4,8 @@ import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AgregarInsumoAUsuario, BuscarInsumoQuery, BuscarInsumoResponseItem, BuscarInsumoUI, CrearInsumoResp, CrearSgaResp, EditarInsumoRequest, EstadisticasInsumosData, Estado, InsertResponse, Insumo } from '../interfaces/registros.interface';
 import { FdsResponse } from '../interfaces/descargas.interface';
-import { CertificadoResumenItem } from '../components/certificados-resumen/certificados-resumen.component';
 import { wakeUpRetry } from '../utils/wake-up-retry';
+import { CertificadoResumenItem } from '../interfaces/certificados.interfaces';
 
 
 interface ApiResp {
@@ -175,7 +175,7 @@ export class RegistrosService {
     fabricante: row.razonSocial,
     fechaFds: this.toISO(row.FDS_fecha),
     fds: row.fds ?? row.Nfile_name,
-    estado, // <- clave
+    estado,
   });
 
   private toISO(dateLike: string): string {
@@ -222,8 +222,8 @@ export class RegistrosService {
       return this.http.post<void>(apiUrl, body).pipe(wakeUpRetry());
   }
 
-   public obtenerCertificadoAVencer(): Observable<{ok: boolean, data:  CertificadoResumenItem[]}> {
-    const apiUrl = `${this.base_url}/registros/obtener/certificados/${this.idUsuario}`;
+   public obtenerCertificadoAVencer(userId: number): Observable<{ok: boolean, data:  CertificadoResumenItem[]}> {
+    const apiUrl = `${this.base_url}/registros/obtener/certificados/${userId}`;
     return this.http
       .get<{ok: boolean, data:  CertificadoResumenItem[]}>(apiUrl)
       .pipe(wakeUpRetry());

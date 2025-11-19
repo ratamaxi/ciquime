@@ -4,29 +4,10 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DescargasService } from 'src/app/services/descargas.service';
 import { SpinnerComponent } from '../spinner/spinner.component';
+import { environment } from 'src/environments/environment';
+import { CertificadoCalidad, CertificadoApi } from 'src/app/interfaces/actividades.interface';
 
-type Estado = 'vigente' | 'vencido';
 
-interface CertificadoApi {
-  usuario_id: number;
-  producto: string;
-  extraname: string | null;
-  nombre_calidoc: string | null;
-  fechacalidad: string;
-  aviso: number;
-  estado: Estado;
-  diasRestantes: number;
-}
-
-interface CertificadoCalidad {
-  numeroInterno: string;
-  producto: string;
-  fabricante: string;
-  certificado: string;
-  fechaExpedicion: string;
-  fechaExpiracion: string;
-  estado: Estado;
-}
 
 @Component({
   selector: 'app-certificados-calidad',
@@ -36,38 +17,35 @@ interface CertificadoCalidad {
   styleUrls: ['./certificados-calidad.component.scss'],
 })
 export class CertificadosCalidadComponent implements OnInit {
-  // Datos base
-  registros: CertificadoCalidad[] = [];
+  private readonly base_url_pdf = environment.base_url_pdf;
 
-  // Derivados para la UI
+  public registros: CertificadoCalidad[] = [];
   public filtered: CertificadoCalidad[] = [];
   public displayed: CertificadoCalidad[] = [];
-
-  // estados UI
-  loading = false;
-  error: string | null = null;
-
-  // búsqueda y paginación
-  public query = '';
-  public page = 1;
-  public pageSize = 10;
-  public pageSizeOpts = [10, 25, 50, 100];
+  public loading = false;
+  public error: string | null = null;
+  public query: string = '';
+  public page: number = 1;
+  public pageSize: number = 10;
+  public pageSizeOpts: number[] = [10, 25, 50, 100];
 
   private idUser: string = localStorage.getItem('idUser') ?? '';
 
-  constructor(private readonly descargasService: DescargasService) {}
+  constructor(private readonly descargasService: DescargasService) { }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.cargar();
   }
 
   // --------- Acciones UI (PDF) ----------
-  public openCertificado(registro: CertificadoCalidad): void {
-    const file = (registro?.certificado || '').trim();
-    if (!file) return;
+  public openCertificado(registro: CertificadoCalidad, cual: 1 | 2 = 1): void {
+    const file =
+      cual === 1
+        ? (registro.certificado || '').trim()
+        : (registro.certificado2 || '').trim();
 
-    const base = 'https://ciquime.com.ar/PDF/doc_calidad';
-    const url  = `${base}/${encodeURIComponent(file)}`;
+    if (!file) return;
+    const url = `${this.base_url_pdf}/${encodeURIComponent(file)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
@@ -84,10 +62,7 @@ export class CertificadosCalidadComponent implements OnInit {
       next: (resp) => {
         const data: CertificadoApi[] = resp?.data ?? [];
         this.registros = data.map(this.mapApiToUi);
-
-        // Inicializar filtros/paginación
         this.applyFilters();
-
         this.loading = false;
       },
       error: (e) => {
@@ -100,23 +75,31 @@ export class CertificadosCalidadComponent implements OnInit {
 
   /** Mapea el item del backend al modelo de UI */
   private mapApiToUi = (r: CertificadoApi): CertificadoCalidad => {
-    const expedicion = this.parseDateYmd(r.fechacalidad); // -> Fecha Expedición
-    // Si tu backend NO trae una segunda fecha, mostramos '-'
-    const expiracion = ''; // <- quedará '-' en la vista
-
+    const expedicion = this.parseDateYmd(r.fechacalidad);
+    const expiracion = this.parseDateYmd(r.fechacalidad2);
     return {
       numeroInterno: r.extraname?.trim() || '--',
       producto: r.producto || '',
-      fabricante: '-', // el API actual no lo envía
+      fabricante: '-',
       certificado: r.nombre_calidoc || '',
+      certificado2: r.nombre_calidoc2 || '',
+      materia_id: r.materia_id,
       fechaExpedicion: expedicion,
+      fechaExpedicion2: expiracion,
       fechaExpiracion: expiracion,
       estado:
         r.estado === 'vigente' || r.estado === 'vencido'
           ? r.estado
           : r.diasRestantes > 0
-          ? 'vigente'
-          : 'vencido',
+            ? 'vigente'
+            : 'vencido',
+      usuario_id: r.usuario_id,
+      nombre_calidoc: r.nombre_calidoc,
+      nombre_calidoc2: r.nombre_calidoc2,
+      fechacalidad: r.fechacalidad,
+      fechacalidad2: r.fechacalidad2,
+      aviso: r.aviso,
+      diasRestantes: r.diasRestantes,
     };
   };
 
@@ -128,25 +111,25 @@ export class CertificadosCalidadComponent implements OnInit {
   }
 
   // --------- Búsqueda + paginado ----------
-  onQueryChange(v: string): void {
+  public onQueryChange(v: string): void {
     this.query = v;
     this.applyFilters();
   }
 
-  onChangePageSize(v: number): void {
+  public onChangePageSize(v: number): void {
     this.pageSize = Number(v) || 10;
     this.page = 1;
     this.applyPagination();
   }
 
-  prevPage(): void {
+  public prevPage(): void {
     if (this.page > 1) {
       this.page--;
       this.applyPagination();
     }
   }
 
-  nextPage(): void {
+  public nextPage(): void {
     if (this.page < this.totalPages) {
       this.page++;
       this.applyPagination();
@@ -159,16 +142,16 @@ export class CertificadosCalidadComponent implements OnInit {
     this.filtered = !q
       ? [...this.registros]
       : this.registros.filter((r) => {
-          const hay = [
-            r.numeroInterno,
-            r.producto,
-            r.fabricante,
-            r.certificado,
-          ]
-            .join(' ')
-            .toLowerCase();
-          return hay.includes(q);
-        });
+        const hay = [
+          r.numeroInterno,
+          r.producto,
+          r.fabricante,
+          r.certificado,
+        ]
+          .join(' ')
+          .toLowerCase();
+        return hay.includes(q);
+      });
 
     this.page = 1;
     this.applyPagination();
@@ -181,27 +164,27 @@ export class CertificadosCalidadComponent implements OnInit {
   }
 
   // --------- Getters para la vista ----------
-  get totalPages(): number {
+  public get totalPages(): number {
     return Math.max(1, Math.ceil((this.filtered?.length || 0) / this.pageSize));
   }
 
-  get showingFrom(): number {
+  public get showingFrom(): number {
     if (!this.filtered?.length) return 0;
     return (this.page - 1) * this.pageSize + 1;
-    }
+  }
 
-  get showingTo(): number {
+  public get showingTo(): number {
     return Math.min(this.filtered?.length || 0, this.page * this.pageSize);
   }
 
   // KPIs (sobre registros totales cargados)
-  get totalRegistros(): number {
+  public get totalRegistros(): number {
     return this.registros.length;
   }
-  get vigentes(): number {
+  public get vigentes(): number {
     return this.registros.filter((r) => r.estado === 'vigente').length;
   }
-  get vencidos(): number {
+  public get vencidos(): number {
     return this.registros.filter((r) => r.estado === 'vencido').length;
   }
 

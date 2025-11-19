@@ -39,8 +39,14 @@
               {{ data.email }}
             </td>
             <td>
-              <a [routerLink]="['/panel/data-user', data.id, 'editar']" app-tooltip class="fa fa-edit pr-3"
-                title="Editar usuario" (click)="$event.stopPropagation()" aria-label="Editar usuario"></a>
+                 <a
+                [routerLink]="['/panel/data-user/editar']"
+                [state]="{ usuarioId: data.id }"
+                app-tooltip
+                class="fa fa-edit pr-3"
+                title="Editar usuario"
+                (click)="$event.stopPropagation()"
+                aria-label="Editar usuario"></a>
             </td>
           </tr>
 

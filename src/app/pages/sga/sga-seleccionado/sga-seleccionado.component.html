@@ -27,8 +27,7 @@
         <!-- EPP y Composición -->
         <app-tabla-epp *ngSwitchCase="'epp'" [ficha]="fichaEpp!"/>
         <!-- NFPA y Transporte -->
-        <app-tabla-nfpa *ngSwitchCase="'nfpa'" [ficha]="nfpaData!"/>
-
+<app-tabla-nfpa *ngSwitchCase="'nfpa'" [ficha]="nfpaData!" [materiaId]="materiaId" />
         <!-- Tratamiento -->
         <app-tabla-tratamiento *ngSwitchCase="'trat'" [ficha]="tratamientoData!"/>
 

@@ -1,8 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ActivatedRoute, Route } from '@angular/router';
-import { take, takeUntil } from 'rxjs';
-import { DescargasService } from 'src/app/services/descargas.service';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
 import { RegistrosService } from 'src/app/services/registros.service';
 
 export interface NfpaTransporteFicha {
@@ -23,16 +20,12 @@ export interface NfpaTransporteFicha {
 export class TablaNfpaComponent {
   @Input() ficha!: NfpaTransporteFicha;
   @Output() fetClick = new EventEmitter<'A' | 'B'>();
-  private materiaId: string = '';
+  @Input() materiaId: number | string | null = null;
 
-
-  constructor(private readonly descargasService: DescargasService, private readonly registrosService: RegistrosService, private readonly route: ActivatedRoute) {
-    //this.descargasService.getPais().subscribe(resp => console.log(resp))
-    this.route.paramMap.pipe(take(1)).subscribe(pm => {
-      const id = pm.get('id');
-      id ? this.materiaId = id : this.materiaId = '';
-    });
-  }
+  constructor(
+    private readonly registrosService: RegistrosService,
+    @Inject(DOCUMENT) private readonly document: Document,
+  ) {}
 
   public getTransportImg(code: string | number | null | undefined): string {
     const v = String(code ?? '0').trim();      // asegura string (incluye '0')
@@ -40,12 +33,37 @@ export class TablaNfpaComponent {
   }
 
   public onOpenFET(): void {
-    const url = this.registrosService.getFetUrl(this.materiaId);
+    const materiaId = this.resolveMateriaId();
+    if (!materiaId) {
+      console.warn('No se pudo determinar el ID de la materia para la FET.');
+      return;
+    }
+    const url = this.registrosService.getFetUrl(materiaId);
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   public openPdfBotonB(): void {
-    const url = `${window.location.origin}/assets/img/FIE_MERCOSUR_Parte_2.pdf`;
-    window.open(url, '_blank', 'noopener');
+    const url = this.assetUrl('assets/img/FIE_MERCOSUR_Parte_2.pdf');
+    console.log(url)
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  private resolveMateriaId(): string | null {
+    if (typeof this.materiaId === 'number' && Number.isFinite(this.materiaId)) {
+      return this.materiaId.toString();
+    }
+    if (typeof this.materiaId === 'string' && this.materiaId.trim()) {
+      return this.materiaId.trim();
+    }
+    return null;
+  }
+
+  private assetUrl(path: string): string {
+    try {
+      const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+      return new URL(path, this.document?.baseURI ?? fallbackOrigin).toString();
+    } catch {
+      return path;
+    }
   }
 }

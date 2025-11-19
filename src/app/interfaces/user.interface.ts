@@ -19,3 +19,18 @@ export interface EmpresaTercero {
   id: number;
   noemp: string;
 }
+
+export interface UsuarioApiData {
+  id: number;
+  nombre: string;
+  mail: string;
+  alias: string | null;
+}
+
+export interface UsuarioFormValue {
+  nombre: string;
+  alias: string;
+  contrasena: string;
+  correo: string;
+}
+

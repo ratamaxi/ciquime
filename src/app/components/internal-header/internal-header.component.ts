@@ -15,8 +15,8 @@ export class InternalHeaderComponent implements OnInit {
   @ViewChild('menuBtn') menuBtn?: ElementRef;
   @ViewChild('menuDesplegado') menuDesplegado?: ElementRef;
 
-  abiertoMenu = true;
-  usuarioData: UserData | null = null;
+  public abiertoMenu = true;
+  public usuarioData: UserData | null = null;
 
   constructor(
     private router: Router,
@@ -25,22 +25,21 @@ export class InternalHeaderComponent implements OnInit {
     private usuarioService: UsuarioService,
   ) {}
 
-  ngOnInit(): void {
-    // Solo para mostrar datos en el header. El id ya lo cachea el servicio.
+  public ngOnInit(): void {
     this.usuarioService.user$.subscribe({
       next: (u: UserData) => (this.usuarioData = u),
     });
   }
 
-  goHome(): void {
+  public goHome(): void {
     this.router.navigateByUrl('panel/home');
   }
 
-  logout(): void {
+  public logout(): void {
     this.loginService.logout();
   }
 
-  abrirMenu(): void {
+  public abrirMenu(): void {
     if (this.abiertoMenu) {
       this.abiertoMenu = false;
       this.render2.addClass(this.menuBtn!.nativeElement, 'open');

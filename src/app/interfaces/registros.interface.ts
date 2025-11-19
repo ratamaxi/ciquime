@@ -124,3 +124,11 @@ export interface AgregarInsumoAUsuario {
       empresa: string,
       usuario: string
 }
+
+export interface EstadisticasInsumosData {
+  aprobados: number;
+  pendientes: number;
+  rechazados: number;
+}
+
+export type Clave = keyof EstadisticasInsumosData;

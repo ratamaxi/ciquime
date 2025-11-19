@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { ActividadesItemComponent, ActividadItem } from 'src/app/components/actividades-item/actividades-item.component';
-import { CertificadoResumenItem, CertificadosResumenComponent } from 'src/app/components/certificados-resumen/certificados-resumen.component';
+import { ActividadesItemComponent } from 'src/app/components/actividades-item/actividades-item.component';
+import { CertificadosResumenComponent } from 'src/app/components/certificados-resumen/certificados-resumen.component';
 import { EstadisticasComponent } from 'src/app/components/estadisticas/estadisticas.component';
 import { StatusCardComponent } from 'src/app/components/status-card/status-card.component';
 import { TablaHomeComponent } from 'src/app/components/tabla-home/tabla-home.component';

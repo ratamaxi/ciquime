@@ -3,11 +3,9 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 export interface ActividadItem {
   texto: string;
-  fecha?: string;      // opcional, por si querés mostrar fecha
-  destacado?: boolean; // opcional, para resaltar una fila
+  fecha?: string;
+  destacado?: boolean;
 }
-
-
 @Component({
   selector: 'app-actividades-item',
   templateUrl: './actividades-item.component.html',
@@ -18,8 +16,6 @@ export interface ActividadItem {
 export class ActividadesItemComponent {
   @Input() titulo = 'Últimas actividades';
   @Input() items: ActividadItem[] = [];
-
-  /** Si querés un botón "Ver más..." al pie */
   @Input() showVerMas = false;
   @Output() verMas = new EventEmitter<void>();
 

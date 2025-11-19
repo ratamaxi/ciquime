@@ -1,13 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { take } from 'rxjs';
 import { ApiInsumo, ApiProducto, ApiResp, EditarInsumoRequest, Estado, SectorInsumoResponse, SectorInsumoResponseData } from 'src/app/interfaces/registros.interface';
 import { FixUtf8Pipe } from 'src/app/pipe/string.pipe';
 import Swal from "sweetalert2";
 import { RegistrosService } from 'src/app/services/registros.service';
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
+
+type EditarInsumoNavState = { materiaId?: string | number };
 
 @Component({
   selector: 'app-editar-insumo',
@@ -22,7 +24,7 @@ export class EditarInsumoComponent implements OnInit {
   public loading = false;
   public errorMsg = '';
   public editarCampos: boolean = false
-  public sectores: SectorInsumoResponseData[]= [];
+  public sectores: SectorInsumoResponseData[] = [];
   public valoracionesApi = ['A', 'B', 'C', 'D'];
   private empresaId: string = localStorage.getItem('id_empresa') ?? '';
   private idUser: string = localStorage.getItem('idUser') ?? '';
@@ -30,7 +32,6 @@ export class EditarInsumoComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
     private registros: RegistrosService,
     private router: Router
   ) {
@@ -55,38 +56,34 @@ export class EditarInsumoComponent implements OnInit {
         this.sectores = resp.data
       },
       error: () => this.sectores = []
-    })
+    });
+    this.materiaId = this.resolveMateriaId();
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe((p) => {
-      this.materiaId = p.get('id') ?? '';
-      if (!this.materiaId || !this.empresaId || !this.idUser) {
-        this.errorMsg = 'Faltan identificadores para cargar el insumo.';
-        return;
-      }
+    if (!this.materiaId || !this.empresaId || !this.idUser) {
+      this.errorMsg = 'Faltan identificadores para cargar el insumo.';
+      return;
+    }
 
-      this.loading = true;
-      this.registros
-        .obtenerDataEditarUsuario(this.materiaId, this.empresaId, this.idUser)
-        .subscribe({
-          next: (resp: ApiResp) => {
-            if (!resp?.ok) {
-              this.errorMsg = resp?.msj || 'No se pudo obtener la información del insumo.';
-              return;
-            }
-            this.patchFromApi(resp);
-            this.lockReadOnlyFields(); // ← deshabilitamos los campos pedidos
-          },
-          error: (err) => {
-            console.error('obtenerDataEditarUsuario error:', err);
-            this.errorMsg = err?.message || 'Error al consultar los datos.';
-          },
-          complete: () => (this.loading = false),
-        });
-    });
-
-
+    this.loading = true;
+    this.registros
+      .obtenerDataEditarUsuario(this.materiaId, this.empresaId, this.idUser)
+      .subscribe({
+        next: (resp: ApiResp) => {
+          if (!resp?.ok) {
+            this.errorMsg = resp?.msj || 'No se pudo obtener la información del insumo.';
+            return;
+          }
+          this.patchFromApi(resp);
+          this.lockReadOnlyFields(); // ← deshabilitamos los campos pedidos
+        },
+        error: (err) => {
+          console.error('obtenerDataEditarUsuario error:', err);
+          this.errorMsg = err?.message || 'Error al consultar los datos.';
+        },
+        complete: () => (this.loading = false),
+      });
   }
 
   // ---------- helpers de mapeo ----------
@@ -137,33 +134,33 @@ export class EditarInsumoComponent implements OnInit {
   }
 
   // ---------- getters y setters UI ----------
-  get f() {
+  public get f() {
     return this.form.controls;
   }
 
-  setRNPQ(val: boolean) {
+  public setRNPQ(val: boolean) {
     if (this.f['rnpq'].disabled) return; // guard
     this.form.patchValue({ rnpq: val });
   }
 
-  setIPel(n: number) {
+  public setIPel(n: number) {
     if (this.f['ipel'].disabled) return; // guard
     this.form.patchValue({ ipel: n });
   }
 
-  abrirHojaSGA() {
+  public abrirHojaSGA() {
     console.log('Abrir Hoja de Clasificación SGA');
   }
 
-  abrirConsejo() {
+  public abrirConsejo() {
     console.log('Abrir Consejo de Aprobación');
   }
 
-  onCancel() {
+  public onCancel() {
     this.form.markAsPristine();
   }
 
-  onSubmit() {
+  public onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -193,35 +190,35 @@ export class EditarInsumoComponent implements OnInit {
     return true
   }
 
- public editarInsumo(): void {
-  if (this.form.invalid) {
-    this.form.markAllAsTouched();
-    return;
-  }
+  public editarInsumo(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-  this.saving = true;
+    this.saving = true;
 
-  const v = this.form.getRawValue(); // incluye deshabilitados
-  const toNull = (x: any) => {
-    const s = (x ?? '').toString().trim();
-    return s.length ? s : null;
-  };
+    const v = this.form.getRawValue(); // incluye deshabilitados
+    const toNull = (x: any) => {
+      const s = (x ?? '').toString().trim();
+      return s.length ? s : null;
+    };
 
-  // ⚠️ materia_id viene en la URL: /panel/editar-insumo/:id
-  const body: EditarInsumoRequest = {
-    materia_id: this.materiaId,
-    extraname: toNull(v.nombreInterno),
-    presentacion: toNull(v.presentacion),
-    sector: toNull(v.sector),
-    lote: toNull(v.lote),
-    nota: toNull(v.notasUsuario),
-  };
+    // ⚠️ materia_id llega desde el state de navegación
+    const body: EditarInsumoRequest = {
+      materia_id: this.materiaId,
+      extraname: toNull(v.nombreInterno),
+      presentacion: toNull(v.presentacion),
+      sector: toNull(v.sector),
+      lote: toNull(v.lote),
+      nota: toNull(v.notasUsuario),
+    };
 
-  this.registros.modificarInsumo(body).pipe(take(1)).subscribe({
-    next: () => {
-      this.saving = false;
-      this.form.markAsPristine();
-      Swal.fire({
+    this.registros.modificarInsumo(body).pipe(take(1)).subscribe({
+      next: () => {
+        this.saving = false;
+        this.form.markAsPristine();
+        Swal.fire({
           position: 'center',
           icon: 'success',
           title: '¡Listo!',
@@ -229,15 +226,34 @@ export class EditarInsumoComponent implements OnInit {
           showConfirmButton: false,
           timer: 2500
         });
-      this.router.navigate(['/panel/ver-insumo'])
+        this.router.navigate(['/panel/ver-insumo'])
       },
-    error: (err) => {
-      this.saving = false;
-      this.errorMsg = err?.error?.message || 'Error al guardar los cambios.';
-      console.error('modificarInsumo error:', err);
+      error: (err) => {
+        this.saving = false;
+        this.errorMsg = err?.error?.message || 'Error al guardar los cambios.';
+        console.error('modificarInsumo error:', err);
+      }
+    });
+  }
+
+  private resolveMateriaId(): string {
+    const state = this.getNavigationState<EditarInsumoNavState>();
+    const id = state?.materiaId;
+    if (typeof id === 'number') return id.toString();
+    if (typeof id === 'string') return id;
+    return '';
+  }
+
+  private getNavigationState<T>(): T | undefined {
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras?.state) {
+      return nav.extras.state as T;
     }
-  });
-}
+    if (typeof history !== 'undefined') {
+      return history.state as T;
+    }
+    return undefined;
+  }
 
 
 }

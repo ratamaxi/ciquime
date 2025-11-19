@@ -1,8 +1,7 @@
 // sga-seleccionado.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { AlmacenamientoFicha, TablaAlmacenamientoComponent } from '../tabla-almacenamiento/tabla-almacenamiento.component';
 import { EmergenciaFicha, TablaEmergenciaComponent } from '../tabla-emergencia/tabla-emergencia.component';
@@ -16,6 +15,7 @@ import { NfpaTransporteFicha, SgaFicha } from 'src/app/interfaces/descargas.inte
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 type TabKey = 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm';
+type SgaSeleccionadoNavState = { materiaId?: number | string; mostrarCompleto?: boolean };
 
 @Component({
   selector: 'app-sga-seleccionado',
@@ -33,10 +33,9 @@ type TabKey = 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm';
     SpinnerComponent
   ]
 })
-export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
+export class SgaSeleccionadoComponent implements OnInit {
 
-  public active: TabKey = 'peligro';
-  public tabs = [
+  public defaultTabs = [
     { key: 'peligro' as const, label: 'Peligros por SGA' },
     { key: 'epp' as const, label: 'EPP y Composición' },
     { key: 'nfpa' as const, label: 'NFPA y Transporte' },
@@ -44,7 +43,8 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
     { key: 'emerg' as const, label: 'Emergencia' },
     { key: 'alm' as const, label: 'Almacenamiento' },
   ];
-
+  public active: TabKey = 'peligro';
+  public tabs = [...this.defaultTabs];
   public emergenciaData: EmergenciaFicha | null = null;
   public almacenamientoData: AlmacenamientoFicha | null = null;
   public tratamientoData: TratamientoFicha | null = null;
@@ -53,33 +53,33 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
   public loadingTab = false;
   public errorTab: string | null = null;
 
-  private materiaId = 0;
-  public mostrarCompleto = false;
-  private sub?: Subscription;
+  public materiaId = 0;
+  public mostrarCompleto = true;
 
   public fichaPeligro: SgaFicha | null = null;
   public fichaEpp: TablaEppFicha | null = null;
 
   constructor(
-    private route: ActivatedRoute,
+    private router: Router,
     private descargas: DescargasService
   ) {}
 
   ngOnInit(): void {
-    this.sub = this.route.paramMap.subscribe(pm => {
-      const id = Number(pm.get('id'));
-      this.materiaId = isFinite(id) ? id : 0;
+   const state = this.getNavigationState<SgaSeleccionadoNavState>();
+    const idValue = state?.materiaId;
+    const parsed = typeof idValue === 'number' ? idValue : Number(idValue);
+    this.materiaId = Number.isFinite(parsed) ? parsed : 0;
 
-      const valorUrlRuta = pm.get('ruta');
-      if (valorUrlRuta === 'false') {
-        this.tabs = [{ key: 'peligro', label: 'Peligros por SGA' }];
-      }
-      this.loadActive();
-    });
-  }
+    this.mostrarCompleto = state?.mostrarCompleto !== false;
+    this.tabs = this.mostrarCompleto
+      ? [...this.defaultTabs]
+      : [{ key: 'peligro', label: 'Peligros por SGA' }];
 
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+    if (!this.materiaId) {
+      this.errorTab = 'ID de materia no válido.';
+      return;
+    }
+    this.loadActive();
   }
 
   setActive(tab: TabKey): void {
@@ -93,6 +93,7 @@ export class SgaSeleccionadoComponent implements OnInit, OnDestroy {
       this.errorTab = 'ID de materia no válido.';
       return;
     }
+
     this.errorTab = null;
     this.loadingTab = true;
 
@@ -290,32 +291,44 @@ private eppAssetUrl(letter: string): string {
   }
 
 private mapNfpaTransporte(resp: any): NfpaTransporteFicha {
-  const d = resp?.data ?? resp ?? {};
-  const h = d.header ?? {};
-  const n = d.nfpa ?? {};
-  const t = d.transporte ?? {};
+    const d = resp?.data ?? resp ?? {};
+    const h = d.header ?? {};
+    const n = d.nfpa ?? {};
+    const t = d.transporte ?? {};
 
-  return {
-    productName: h.nombre_producto ?? '',
-    supplier: h.razonSocial ?? '',
-    fuente: h.fuente ?? '',
+    return {
+      productName: h.nombre_producto ?? '',
+      supplier: h.razonSocial ?? '',
+      fuente: h.fuente ?? '',
 
-    nfpa: {
-      salud: n.salud ?? 'NP',
-      inflamabilidad: n.inflamabilidad ?? 'NP',
-      reactividad: n.reactividad ?? 'NP',
-      otros: n.otros ?? '-',
-    },
+      nfpa: {
+        salud: n.salud ?? 'NP',
+        inflamabilidad: n.inflamabilidad ?? 'NP',
+        reactividad: n.reactividad ?? 'NP',
+        otros: n.otros ?? '-',
+      },
 
-    transporte: {
-      codRiesgo: t.cod_riesgo ?? 'NP',
-      nroOnu: t.nro_onu ?? 'NP',
-      grupoEmbalaje: t.grupo_embalaje ?? 'NP',
-      // 👇 traemos tal cual del back y lo normalizamos a string
-      clasImg: String(t.clas_img ?? '0'),
-      guia: t.guia ?? '',
-    },
-  };
-}
+      transporte: {
+        codRiesgo: t.cod_riesgo ?? 'NP',
+        nroOnu: t.nro_onu ?? 'NP',
+        grupoEmbalaje: t.grupo_embalaje ?? 'NP',
+        // 👇 traemos tal cual del back y lo normalizamos a string
+        clasImg: String(t.clas_img ?? '0'),
+        guia: t.guia ?? '',
+      },
+    };
+  }
+
+  private getNavigationState<T>(): T | undefined {
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras?.state) {
+      return nav.extras.state as T;
+    }
+    if (typeof history !== 'undefined') {
+      return history.state as T;
+    }
+    return undefined;
+  }
+
 
 }

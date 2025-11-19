@@ -8,6 +8,19 @@ import { wakeUpRetry } from '../utils/wake-up-retry';
 
 type SgaTab = 'peligros' | 'epp' | 'nfpa' | 'tratamiento' | 'emergencia' | 'almacenamiento';
 
+export interface EditarCertPayload {
+  materiaId: number;
+  usuarioId: number;
+  cali: boolean;
+  avisoEn: 30 | 60 | 90;
+  doc1Vencimiento?: string;
+  doc2Vencimiento?: string;
+  oldNombreCalidoc?: string;
+  oldNombreCalidoc2?: string;
+  doc1?: File | null;
+  doc2?: File | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DescargasService {
   private base_url: string = environment.baseUrl;
@@ -123,5 +136,27 @@ export class DescargasService {
     return this.http
       .post<any>(`${this.descargas}/certificados/calidad`, body)
       .pipe(wakeUpRetry({ maxAttempts: 5, baseDelayMs: 4000 }));
+  }
+
+    editarCertificadosCalidad(data: EditarCertPayload): Observable<any> {
+    const fd = new FormData();
+
+    fd.append('materiaId', String(data.materiaId ?? 0));
+    fd.append('usuarioId', String(data.usuarioId ?? 0));
+    // el back espera 1/0 para "requiere"
+    fd.append('cali', data.cali ? '1' : '0');
+    fd.append('avisoEn', String(data.avisoEn ?? 30));
+
+    fd.append('doc1Vencimiento', data.doc1Vencimiento ?? '');
+    fd.append('doc2Vencimiento', data.doc2Vencimiento ?? '');
+
+    // nombres previos (por si no se suben archivos nuevos)
+    fd.append('oldNombreCalidoc',  data.oldNombreCalidoc  ?? '');
+    fd.append('oldNombreCalidoc2', data.oldNombreCalidoc2 ?? '');
+
+    if (data.doc1) fd.append('doc1', data.doc1, data.doc1.name);
+    if (data.doc2) fd.append('doc2', data.doc2, data.doc2.name);
+
+    return this.http.post(`${this.descargas}/certificados-calidad/editar`, fd);
   }
 }

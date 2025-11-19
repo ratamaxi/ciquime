@@ -31,10 +31,8 @@
         <div class="panel__filters" aria-label="Controles de la tabla">
           <div class="filters__display">
             <span>Mostrar </span>
-            <select class="mx-3"
-                    aria-label="Cantidad de registros a mostrar"
-                    [(ngModel)]="pageSize"
-                    (ngModelChange)="onChangePageSize($event)">
+            <select class="mx-3" aria-label="Cantidad de registros a mostrar" [(ngModel)]="pageSize"
+              (ngModelChange)="onChangePageSize($event)">
               <option *ngFor="let opt of pageSizeOpts" [value]="opt">{{ opt }}</option>
             </select>
             <span>registros</span>
@@ -42,11 +40,8 @@
 
           <div class="filters__search">
             <label class="pt-2" for="buscar-certificados">Buscar:</label>
-            <input id="buscar-certificados"
-                   type="text"
-                   placeholder="Producto, fabricante…"
-                   [(ngModel)]="query"
-                   (ngModelChange)="onQueryChange($event)" />
+            <input id="buscar-certificados" type="text" placeholder="Producto, fabricante…" [(ngModel)]="query"
+              (ngModelChange)="onQueryChange($event)" />
           </div>
         </div>
       </div>
@@ -54,9 +49,10 @@
 
     <div class="card">
       <!-- estados -->
-<div *ngIf="loading" class="table-wrap muted p-3">
+      <div *ngIf="loading" class="table-wrap muted p-3">
         <app-spinner text="Cargando certificados…"></app-spinner>
-      </div>      <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
+      </div>
+      <div *ngIf="error && !loading" class="table-wrap error p-3">{{ error }}</div>
 
       <!-- tabla -->
       <div class="table-wrap" role="region" aria-live="polite" *ngIf="!loading && !error">
@@ -95,19 +91,14 @@
               </td>
 
               <td>
-                <span
-                  class="estado"
-                  [class.estado--vigente]="registro.estado === 'vigente'"
+                <span class="estado" [class.estado--vigente]="registro.estado === 'vigente'"
                   [class.estado--vencido]="registro.estado === 'vencido'">
                   {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
                 </span>
               </td>
 
               <td class="center">
-                <button
-                  class="icon"
-                  title="Editar"
-                  [routerLink]="['/panel/certificados-calidad/editar']"
+                <button class="icon" title="Editar" [routerLink]="['/panel/certificados-calidad/editar']"
                   [state]="{ cert: registro }">
                   <svg viewBox="0 0 24 24">
                     <path
@@ -115,11 +106,18 @@
                   </svg>
                 </button>
 
-                <button
-                  class="icon download"
-                  title="Ver PDF"
-                  *ngIf="registro.certificado && registro.certificado.trim()"
-                  (click)="openCertificado(registro)">
+                <button class="icon download" title="Ver PDF #1"
+                  *ngIf="registro.certificado && registro.certificado.trim()" (click)="openCertificado(registro, 1)">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                    <path
+                      d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7" />
+                  </svg>
+                </button>
+
+                <!-- PDF #2 -->
+                <button class="icon download" title="Ver PDF #2"
+                  *ngIf="registro.certificado2 && registro.certificado2.trim()" (click)="openCertificado(registro, 2)">
                   <svg viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
                     <path
@@ -148,13 +146,9 @@
           <button type="button" class="btn" (click)="prevPage()" [disabled]="page === 1">
             Anterior
           </button>
-         <button
-  type="button"
-  class="btn"
-  (click)="nextPage()"
-  [disabled]="page >= totalPages">
-  Siguiente
-</button>
+          <button type="button" class="btn" (click)="nextPage()" [disabled]="page >= totalPages">
+            Siguiente
+          </button>
         </div>
       </div>
     </div>

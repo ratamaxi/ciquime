@@ -97,7 +97,8 @@
     <button
       type="button"
       class="icon-btn"
-      [routerLink]="['/panel/sga', r.id, 'false']"
+      [routerLink]="['/panel/sga/detalle']"
+      [state]="{ materiaId: r.id, mostrarCompleto: false }"
       title="Ver FDS (SGA)"
       aria-label="Ver FDS (SGA)"
     >

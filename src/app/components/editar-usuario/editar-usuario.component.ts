@@ -1,24 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { UsuarioService } from 'src/app/services/usuario.service';
 import Swal from "sweetalert2";
 import { SpinnerComponent } from '../spinner/spinner.component';
+import { UsuarioApiData, UsuarioFormValue } from 'src/app/interfaces/user.interface';
 
-interface UsuarioApiData {
-  id: number;
-  nombre: string;
-  mail: string;
-  alias: string | null;
-}
-
-interface UsuarioFormValue {
-  nombre: string;
-  alias: string;
-  contrasena: string;
-  correo: string;
-}
+type EditarUsuarioNavState = { usuarioId?: number | string };
 
 @Component({
   selector: 'app-editar-usuario',
@@ -28,33 +17,27 @@ interface UsuarioFormValue {
   imports: [CommonModule, ReactiveFormsModule, RouterModule, SpinnerComponent],
 })
 export class EditarUsuarioComponent implements OnInit {
-  form: FormGroup = this.fb.group({
+  public form: FormGroup = this.fb.group({
     nombre: ['', Validators.required],
     alias: [''],
     contrasena: ['', [Validators.minLength(6)]], // opcional: solo validar si se completa
     correo: ['', [Validators.required, Validators.email]],
   });
 
-  // El usuario cargado (para el encabezado)
-  usuario?: UsuarioApiData;
-
-  // Estados UI
-  loading = false;
-  saving = false;
-  error: string | null = null;
-
-  // id de la ruta
-  private id!: string;
+  public usuario?: UsuarioApiData;
+  public loading = false;
+  public saving = false;
+  public error: string | null = null;
+  private id: string = '';
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly usuarioService: UsuarioService
   ) { }
 
-  ngOnInit(): void {
-    this.id = this.route.snapshot.paramMap.get('id') ?? '';
+  public ngOnInit(): void {
+    this.id = this.resolveUsuarioId();
     if (!this.id) {
       this.error = 'ID de usuario inválido.';
       return;
@@ -62,11 +45,29 @@ export class EditarUsuarioComponent implements OnInit {
     this.cargarUsuario();
   }
 
+  private resolveUsuarioId(): string {
+    const state = this.getNavigationState<EditarUsuarioNavState>();
+    const id = state?.usuarioId;
+    if (typeof id === 'number') return id.toString();
+    if (typeof id === 'string') return id;
+    return '';
+  }
+
+  private getNavigationState<T>(): T | undefined {
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras?.state) {
+      return nav.extras.state as T;
+    }
+    if (typeof history !== 'undefined') {
+      return history.state as T;
+    }
+    return undefined;
+  }
+
   private cargarUsuario(): void {
     this.loading = true;
     this.error = null;
 
-    // Tu backend: GET /api/descargas/info/usuario/:id
     this.usuarioService.getDataUsuario(this.id).subscribe({
       next: (resp: any) => {
         const d: UsuarioApiData | undefined = resp?.data;
@@ -77,12 +78,11 @@ export class EditarUsuarioComponent implements OnInit {
         }
 
         this.usuario = d;
-        // Parchar el form con los nombres adecuados
         this.form.patchValue({
           nombre: d.nombre ?? '',
           alias: d.alias ?? '',
           correo: d.mail ?? '',
-          contrasena: '' // vacío por seguridad
+          contrasena: ''
         });
 
         this.loading = false;
@@ -97,20 +97,16 @@ export class EditarUsuarioComponent implements OnInit {
 
   public guardar(): void {
     if (!this.usuario) return;
-
-    // Validación básica
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     const raw = this.form.getRawValue() as UsuarioFormValue;
-
-    // Armamos payload para el backend
     const payload = {
       correo: raw.correo?.trim() ?? '',
-      alias: raw.alias?.trim() || null,            // si está vacío -> null
-      contrasena: raw.contrasena?.trim() || undefined, // si está vacío -> no se envía
+      alias: raw.alias?.trim() || null,
+      contrasena: raw.contrasena?.trim() || undefined,
     };
 
     this.saving = true;

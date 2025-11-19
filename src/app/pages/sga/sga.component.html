@@ -100,8 +100,8 @@
       class="icon-btn"
       title="Ver FDS (SGA)"
       aria-label="Ver FDS (SGA)"
-      [routerLink]="['/panel/sga', r.id, 'true']"
-    >
+     [routerLink]="['/panel/sga/detalle']"
+      [state]="{ materiaId: r.id, mostrarCompleto: true }"    >
 
       <svg class="icon icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
         <!-- rombo con más aire -->

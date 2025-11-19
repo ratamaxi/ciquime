@@ -29,21 +29,13 @@ export class TablaDescargarComponent {
   }
 
   public readonly Math = Math;
-  private oldPortalBase = 'https://ciquime.com.ar';
-
-  // Tabs / filtros
-  activeTab: Estado = 'APROBADO';
-
-  // Búsqueda y paginado
-  query = '';
-  pageSize = 10;
-  page = 1;
-
-  // Ordenamiento
-  sortKey: keyof InsumoDescarga | 'fechaFds' = 'producto';
-  sortDir: 1 | -1 = 1;
-
-  // Dataset real
+  private readonly base_url_ciquime = environment.base_url_ciquime;
+  public activeTab: Estado = 'APROBADO';
+  public query = '';
+  public pageSize = 10;
+  public page = 1;
+  public sortKey: keyof InsumoDescarga | 'fechaFds' = 'producto';
+  public sortDir: 1 | -1 = 1;
   private all: InsumoDescarga[] = [];
 
   constructor(private router: Router, private readonly registros: RegistrosService) {}
@@ -72,7 +64,7 @@ export class TablaDescargarComponent {
   private toInsumo(r: FdsDataResponse): InsumoDescarga {
     const id = String(r.materia_id);
     const idEncFromInput = this.idEncryptByMateria?.[id] ?? null;
-    const idEncFromApi = (r as any).id_encrypt ?? null; // por si ya viene en la fila
+    const idEncFromApi = (r as any).id_encrypt ?? null;
 
     return {
       id,
@@ -82,15 +74,14 @@ export class TablaDescargarComponent {
       producto: this.deMojibake(r.nombre_producto),
       fabricante: this.deMojibake(r.razonSocial),
       fechaFds: this.toYmd(r.FDS_fecha as any),
-      estado: 'APROBADO', // por tu WHERE
-      // Guardamos el nombre de archivo crudo para el link del portal viejo (no “arreglado”)
+      estado: 'APROBADO',
       fdsFile: r.fds,
       calidadDoc: r.nombre_calidoc ?? null
     };
   }
 
   // ---------- Derivados para UI ----------
-  get filtered(): InsumoDescarga[] {
+  public get filtered(): InsumoDescarga[] {
     const q = this.query.trim().toLowerCase();
     return this.all
       .filter(i => i.estado === this.activeTab)
@@ -108,21 +99,11 @@ export class TablaDescargarComponent {
       });
   }
 
-  get total(): number { return this.filtered.length; }
+  public get total(): number { return this.filtered.length; }
 
-  get pageData(): InsumoDescarga[] {
+  public get pageData(): InsumoDescarga[] {
     const start = (this.page - 1) * this.pageSize;
     return this.filtered.slice(start, start + this.pageSize);
-  }
-
-  /** Codifica como espera el portal viejo para root= (FDS):
-   *  Unicode -> bytes UTF-8 -> reinterpretado como Latin-1 -> encodeURIComponent
-   */
-  private encodeForOldPortal(s: string): string {
-    const bytes = new TextEncoder().encode(s);
-    let latin1 = '';
-    for (const b of bytes) latin1 += String.fromCharCode(b);
-    return encodeURIComponent(latin1);
   }
 
 public abrirHSO(item: InsumoDescarga): void {
@@ -147,7 +128,7 @@ public abrirFds(item: InsumoDescarga): void {
   const root = this.encodeLegacyRoot(item.fdsFile);
   const rfn  = encodeURIComponent(item.producto ?? '');
 
-  const url = `${this.oldPortalBase}/fdsdownload.php?root=${root}&rfn=${rfn}`;
+  const url = `${this.base_url_ciquime}/fdsdownload.php?root=${root}&rfn=${rfn}`;
   openBlank(url);
 }
 
@@ -182,13 +163,13 @@ private encodeLegacyRoot(name: string): string {
 
 
   // ---------- UI helpers ----------
-  setTab(tab: Estado) {
+  public setTab(tab: Estado) {
     this.activeTab = tab;
     this.page = 1;
     this.query = '';
   }
 
-  toggleSort(key: keyof InsumoDescarga | 'fechaFds') {
+  public toggleSort(key: keyof InsumoDescarga | 'fechaFds') {
     if (this.sortKey === key) {
       this.sortDir = this.sortDir === 1 ? -1 : 1;
     } else {
