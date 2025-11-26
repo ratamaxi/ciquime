@@ -50,15 +50,18 @@ export class UsuarioService {
       this.userRequest$ = this.http
         .get<UserData>(`${this.baseUrl}/usuario/data/usuario/${userName}`)
         .pipe(
-          wakeUpRetry({ maxAttempts: 5 }),
           tap((u: UserData) => {
-            localStorage.setItem('idUser', String(u.id_usuario))
-            localStorage.setItem('id_empresa', String(u.id_empresa))
+            localStorage.setItem('idUser', String(u.id_usuario));
+            localStorage.setItem('id_empresa', String(u.id_empresa));
           }),
           shareReplay({ bufferSize: 1, refCount: false })
         );
     }
     return this.userRequest$;
+  }
+
+  public clearUserCache(): void {
+    this.userRequest$ = undefined;
   }
 
   /** Acceso directo sólo al id (también cacheado). */

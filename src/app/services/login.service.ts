@@ -4,6 +4,7 @@ import {Router} from '@angular/router';
 import {Observable, tap} from 'rxjs';
 import {environment} from 'src/environments/environment';
 import { LoginDataRequest, LoginResponse } from '../interfaces/auth.interface';
+import { UsuarioService } from './usuario.service';
 
 @Injectable({providedIn: 'root'})
 export class LoginService {
@@ -13,8 +14,10 @@ export class LoginService {
   private readonly REFRESH_TOKEN = 'refreshToken';
   private readonly ACCCESS_TOKEN = 'accessToken';
   private readonly SESSION_ID = 'sessionId';
+  private readonly USER_ID = 'idUser';
+  private readonly EMPRESA_ID = 'id_empresa';
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient, private router: Router, private usuarioService: UsuarioService) {
   }
 
   public login(formData: LoginDataRequest): Observable<LoginResponse> {
@@ -42,6 +45,9 @@ export class LoginService {
     localStorage.removeItem(this.TOKEN);
     localStorage.removeItem(this.REFRESH_TOKEN);
     localStorage.removeItem(this.SESSION_ID);
+    localStorage.removeItem(this.USER_ID);
+    localStorage.removeItem(this.EMPRESA_ID);
+    this.usuarioService.clearUserCache();
     this.router.navigateByUrl('/login').then();
   }
 
