@@ -199,8 +199,8 @@ export class RegistrosService {
     return this.http.get(apiUrl).pipe(wakeUpRetry());
   }
 
-  public obtenerDataFds(): Observable<FdsResponse> {
-    const apiUrl = `${this.base_url}/descargas/data/${this.idUsuario}`;
+  public obtenerDataFds(idUsuario: number): Observable<FdsResponse> {
+    const apiUrl = `${this.base_url}/descargas/data/${idUsuario}`;
     return this.http.get<FdsResponse>(apiUrl).pipe(wakeUpRetry());
   }
 
