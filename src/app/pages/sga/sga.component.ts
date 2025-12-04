@@ -64,7 +64,7 @@ export class SgaComponent  implements OnInit, OnDestroy {
 
     const offset = (this.page - 1) * this.pageSize;
 
-    this.registros.buscarInsumosDisponibles(this.currentUserId, {
+    this.registros.buscarInsumosSga(this.currentUserId, {
       insumo: this.filtroNombre.trim(),
       fabricante: this.filtroFabricante.trim(),
       limit: this.pageSize,

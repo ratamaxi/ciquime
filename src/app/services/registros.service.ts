@@ -94,6 +94,60 @@ export class RegistrosService {
       );
   }
 
+    public buscarInsumosSga(
+    usuarioId: number,
+    opts: BuscarInsumoQuery
+  ): Observable<BuscarInsumoUI[]> {
+    const params = new HttpParams({
+      fromObject: {
+        insumo: (opts.insumo ?? '').trim(),
+        fabricante: (opts.fabricante ?? '').trim(),
+        limit: String(opts.limit ?? 10),
+        offset: String(opts.offset ?? 0),
+        // si tu backend filtra por empid, descomentá:
+        // empid: opts.empid != null ? String(opts.empid) : ''
+      },
+    });
+
+    return this.http
+      .get<BuscarInsumoResponseItem[]>(
+        `${this.base_url}/registros/sga/${usuarioId}`,
+        { params }
+      )
+      .pipe(
+        wakeUpRetry(),
+        map(rows =>
+          (rows ?? []).map((r): BuscarInsumoUI => {
+            // Fix opcional de acentos rotos (ej: EspaÃ±ol)
+            const fixLatin1 = (s: string) => {
+              try { return decodeURIComponent(escape(s)); } catch { return s; }
+            };
+            return {
+              // datos “crudos” del back (con tipos correctos)
+              Nfile_name: fixLatin1(r.Nfile_name),
+              id: Number(r.id),
+              matid: Number(r.matid),
+              empid: Number(r.empid),
+              nombre_producto: r.nombre_producto,
+              fabricante: r.fabricante,
+              revisionFDS: r.revisionFDS,
+              fecha_insert: r.fecha_insert,
+              fdsUrl: r.fdsUrl,
+
+              // alias requeridos para la vista
+              producto: r.nombre_producto,
+              revFDS: r.revisionFDS,
+              fechaFDS: r.fecha_insert,
+            };
+          })
+        ),
+        catchError(err => {
+          console.error('[buscarInsumosDisponibles] error', err);
+          return of<BuscarInsumoUI[]>([]);
+        })
+      );
+  }
+
   // (ojo con el nombre, lo dejé como lo tenías)
   public instertarInsumoUsuario(userId: number): Observable<any> {
     return this.http
