@@ -1,30 +1,20 @@
 <div class="px-5">
   <div class="page px-5 pt-5">
-    <h3 class="title-font">Registro/Actualización de Insumo</h3>
+    <h3 class="title-font">Consulta SGA</h3>
 
     <!-- Barra de búsqueda -->
     <div class="search-card mt-3">
       <form (ngSubmit)="buscar()" class="search-grid">
         <label class="field">
           <span class="label">Nombre del insumo</span>
-          <input
-            type="text"
-            [(ngModel)]="filtroNombre"
-            name="nombre"
-            placeholder="Ej: Propylene Glycol"
-            (keyup.enter)="buscar()"
-          />
+          <input type="text" [(ngModel)]="filtroNombre" name="nombre" placeholder="Ej: Propylene Glycol"
+            (keyup.enter)="buscar()" />
         </label>
 
         <label class="field">
           <span class="label">Nombre del fabricante</span>
-          <input
-            type="text"
-            [(ngModel)]="filtroFabricante"
-            name="fabricante"
-            placeholder="Ej: MERCK S.A."
-            (keyup.enter)="buscar()"
-          />
+          <input type="text" [(ngModel)]="filtroFabricante" name="fabricante" placeholder="Ej: MERCK S.A."
+            (keyup.enter)="buscar()" />
         </label>
 
         <div class="actions pb-2">
@@ -35,9 +25,10 @@
     </div>
 
     <!-- Estados -->
-  <div *ngIf="loading" class="mt-2">
+    <div *ngIf="loading" class="mt-2">
       <app-spinner text="Buscando insumos…"></app-spinner>
-    </div>    <div *ngIf="!loading && error" class="mt-2 text-danger">{{ error }}</div>
+    </div>
+    <div *ngIf="!loading && error" class="mt-2 text-danger">{{ error }}</div>
 
     <!-- Tabla -->
     <div class="table-card" *ngIf="!error">
@@ -45,41 +36,29 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th
-                tabindex="0"
-                (click)="sortBy('producto')"
-                (keyup.enter)="sortBy('producto')"
-                [attr.aria-sort]="sortKey==='producto' ? (sortDir===1?'ascending':'descending') : 'none'"
-              >
+              <th tabindex="0" (click)="sortBy('producto')" (keyup.enter)="sortBy('producto')"
+                [attr.aria-sort]="sortKey==='producto' ? (sortDir===1?'ascending':'descending') : 'none'">
                 Producto
-                <span class="sort" [class.active]="sortKey==='producto'" [class.desc]="sortKey==='producto' && sortDir===-1"></span>
+                <span class="sort" [class.active]="sortKey==='producto'"
+                  [class.desc]="sortKey==='producto' && sortDir===-1"></span>
               </th>
-              <th
-                tabindex="0"
-                (click)="sortBy('fabricante')"
-                (keyup.enter)="sortBy('fabricante')"
-                [attr.aria-sort]="sortKey==='fabricante' ? (sortDir===1?'ascending':'descending') : 'none'"
-              >
+              <th tabindex="0" (click)="sortBy('fabricante')" (keyup.enter)="sortBy('fabricante')"
+                [attr.aria-sort]="sortKey==='fabricante' ? (sortDir===1?'ascending':'descending') : 'none'">
                 Fabricante
-                <span class="sort" [class.active]="sortKey==='fabricante'" [class.desc]="sortKey==='fabricante' && sortDir===-1"></span>
+                <span class="sort" [class.active]="sortKey==='fabricante'"
+                  [class.desc]="sortKey==='fabricante' && sortDir===-1"></span>
               </th>
-              <th
-                tabindex="0"
-                (click)="sortBy('revFDS')"
-                (keyup.enter)="sortBy('revFDS')"
-                [attr.aria-sort]="sortKey==='revFDS' ? (sortDir===1?'ascending':'descending') : 'none'"
-              >
+              <th tabindex="0" (click)="sortBy('revFDS')" (keyup.enter)="sortBy('revFDS')"
+                [attr.aria-sort]="sortKey==='revFDS' ? (sortDir===1?'ascending':'descending') : 'none'">
                 Rev.FDS
-                <span class="sort" [class.active]="sortKey==='revFDS'" [class.desc]="sortKey==='revFDS' && sortDir===-1"></span>
+                <span class="sort" [class.active]="sortKey==='revFDS'"
+                  [class.desc]="sortKey==='revFDS' && sortDir===-1"></span>
               </th>
-              <th
-                tabindex="0"
-                (click)="sortBy('fechaFDS')"
-                (keyup.enter)="sortBy('fechaFDS')"
-                [attr.aria-sort]="sortKey==='fechaFDS' ? (sortDir===1?'ascending':'descending') : 'none'"
-              >
+              <th tabindex="0" (click)="sortBy('fechaFDS')" (keyup.enter)="sortBy('fechaFDS')"
+                [attr.aria-sort]="sortKey==='fechaFDS' ? (sortDir===1?'ascending':'descending') : 'none'">
                 Fecha.FDS
-                <span class="sort" [class.active]="sortKey==='fechaFDS'" [class.desc]="sortKey==='fechaFDS' && sortDir===-1"></span>
+                <span class="sort" [class.active]="sortKey==='fechaFDS'"
+                  [class.desc]="sortKey==='fechaFDS' && sortDir===-1"></span>
               </th>
               <th class="col-accion">Acción</th>
             </tr>
@@ -91,28 +70,22 @@
               <td [title]="r.fabricante">{{ r.fabricante }}</td>
               <td>{{ r.revFDS }}</td>
               <td>{{ r.fechaFDS | date:'dd/MM/yyyy' }}</td>
-             <td class="col-accion">
-  <div class="actions-cell">
+              <td class="col-accion">
+                <div class="actions-cell">
+                  <!-- SGA -->
+                  <button type="button" class="icon-btn" title="Ver FDS (SGA)" aria-label="Ver FDS (SGA)"
+                    [routerLink]="['/panel/sga/detalle']" [state]="{ materiaId: r.id, mostrarCompleto: true }">
 
-    <!-- SGA -->
-    <button
-      type="button"
-      class="icon-btn"
-      title="Ver FDS (SGA)"
-      aria-label="Ver FDS (SGA)"
-     [routerLink]="['/panel/sga/detalle']"
-      [state]="{ materiaId: r.id, mostrarCompleto: true }"    >
+                    <svg class="icon icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
+                      <!-- rombo con más aire -->
+                      <polygon points="16,5 27,16 16,27 5,16" class="sga-diamond"></polygon>
+                      <!-- texto centrado perfecto -->
+                      <text x="16" y="17" text-anchor="middle" dominant-baseline="middle" class="sga-text">SGA</text>
+                    </svg>
+                  </button>
 
-      <svg class="icon icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
-        <!-- rombo con más aire -->
-        <polygon points="16,5 27,16 16,27 5,16" class="sga-diamond"></polygon>
-        <!-- texto centrado perfecto -->
-        <text x="16" y="17" text-anchor="middle" dominant-baseline="middle" class="sga-text">SGA</text>
-      </svg>
-    </button>
-
-  </div>
-</td>
+                </div>
+              </td>
 
             </tr>
 
@@ -130,7 +103,8 @@
         </div>
         <div class="pager">
           <button class="pager-btn" (click)="prev()" [disabled]="page===1 || loading">Anterior</button>
-          <button class="pager-btn" (click)="next()" [disabled]="pageItems.length < pageSize || loading">Siguiente</button>
+          <button class="pager-btn" (click)="next()"
+            [disabled]="pageItems.length < pageSize || loading">Siguiente</button>
         </div>
       </div>
     </div>

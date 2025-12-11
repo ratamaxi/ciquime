@@ -49,3 +49,12 @@ export interface CertificadoResumenItemResumen {
   fechaExpiracion: string;
   estado: EstadoCertificado;
 }
+
+export interface CertificadoPorVencer {
+  id: string;
+  producto: string;
+  certificado: string;
+  fechaExpiracion: string;
+  estado: 'vigente' | 'vencido';
+  estadoTexto: string;
+}

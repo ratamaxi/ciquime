@@ -22,7 +22,7 @@ export class EstadisticasComponent implements OnInit{
    * Por defecto: solo Aprobados y Pendientes (como en tu mock).
    * Si querés todas: ['aprobados','pendientes','rechazados']
    */
-  @Input() mostrarBarras: Clave[] = ['aprobados', 'pendientes'];
+@Input() mostrarBarras: Clave[] = ['aprobados', 'pendientes', 'rechazados'];
 
   constructor(private registroService: RegistrosService, private usuarioService: UsuarioService
   ) {}

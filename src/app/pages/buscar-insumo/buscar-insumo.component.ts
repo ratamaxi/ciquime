@@ -1,13 +1,17 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
-import { AgregarInsumoAUsuario, BuscarInsumoResponseItem, BuscarInsumoUI } from 'src/app/interfaces/registros.interface';
+import {
+  AgregarInsumoAUsuario,
+  BuscarInsumoResponseItem,
+  BuscarInsumoUI
+} from 'src/app/interfaces/registros.interface';
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
-import Swal from "sweetalert2";
+import Swal from 'sweetalert2';
 
 type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 
@@ -21,6 +25,10 @@ type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
 export class BuscarInsumoComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject();
   private idEmpresa: string = localStorage.getItem('id_empresa') ?? '';
+
+  // clave para localStorage
+  private readonly STORAGE_KEY = 'buscarInsumoState';
+
   // filtros
   filtroNombre = '';
   filtroFabricante = '';
@@ -43,48 +51,100 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
 
   constructor(
     private registros: RegistrosService,
-    private users: UsuarioService
-  ) { }
+    private users: UsuarioService,
+    private router: Router
+  ) {}
 
   public ngOnInit(): void {
-    // Espero el userId y disparo primera carga
     this.users.userId$.pipe(takeUntil(this.destroy$)).subscribe((id) => {
       this.currentUserId = id;
-      this.page = 1;
+
+      // 1) cargo el estado guardado (si existe)
+      this.loadState();
+
+      // 2) aseguro que siempre haya página válida
+      this.page = this.page || 1;
+
+      // 3) hago la búsqueda inicial con ese estado
       this.buscar();
     });
   }
 
-  // --- Acciones UI ---
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.unsubscribe();
+  }
+
+  // =========================
+  //   Estado en localStorage
+  // =========================
+
+  private loadState(): void {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return;
+
+      const s = JSON.parse(raw);
+      this.filtroNombre = s.filtroNombre ?? '';
+      this.filtroFabricante = s.filtroFabricante ?? '';
+      this.page = s.page ?? 1;
+      this.sortKey = s.sortKey ?? 'producto';
+      this.sortDir = s.sortDir ?? 1;
+    } catch (e) {
+      console.error('No se pudo cargar estado de búsqueda', e);
+    }
+  }
+
+  private saveState(): void {
+    const state = {
+      filtroNombre: this.filtroNombre,
+      filtroFabricante: this.filtroFabricante,
+      page: this.page,
+      sortKey: this.sortKey,
+      sortDir: this.sortDir,
+    };
+
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.error('No se pudo guardar estado de búsqueda', e);
+    }
+  }
+
   public buscar(): void {
     if (!this.currentUserId) return;
     this.loading = true;
     this.error = null;
+    this.saveState();
     const offset = (this.page - 1) * this.pageSize;
 
-    this.registros.buscarInsumosDisponibles(this.currentUserId, {
-      insumo: this.filtroNombre.trim(),
-      fabricante: this.filtroFabricante.trim(),
-      limit: this.pageSize,
-      offset
-    }).subscribe({
-      next: (items: any) => {
-        this.pageItems = items ?? [];
-        this.applySort();
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar los insumos.';
-        this.pageItems = [];
-        this.loading = false;
-      }
-    });
+    this.registros
+      .buscarInsumosDisponibles(this.currentUserId, {
+        insumo: this.filtroNombre.trim(),
+        fabricante: this.filtroFabricante.trim(),
+        limit: this.pageSize,
+        offset,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (items: any) => {
+          this.pageItems = items ?? [];
+          this.applySort();
+          this.loading = false;
+        },
+        error: () => {
+          this.error = 'No se pudieron cargar los insumos.';
+          this.pageItems = [];
+          this.loading = false;
+        },
+      });
   }
 
   public limpiar(): void {
     this.filtroNombre = '';
     this.filtroFabricante = '';
     this.page = 1;
+    this.saveState();
     this.buscar();
   }
 
@@ -96,19 +156,21 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
       this.sortDir = 1;
     }
     this.applySort();
+    this.saveState();
   }
 
   public prev(): void {
     if (this.page > 1 && !this.loading) {
       this.page--;
+      this.saveState();
       this.buscar();
     }
   }
 
   public next(): void {
-    // si la página vino “llena”, asumo que hay otra página
     if (this.pageItems.length === this.pageSize && !this.loading) {
       this.page++;
+      this.saveState();
       this.buscar();
     }
   }
@@ -130,6 +192,7 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
 
       va = (va ?? '').toString().toLowerCase();
       vb = (vb ?? '').toString().toLowerCase();
+
       if (va < vb) return -1 * dir;
       if (va > vb) return 1 * dir;
       return 0;
@@ -147,67 +210,77 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
   public trackByRow = (_: number, r: BuscarInsumoUI) =>
     `${r.producto}|${r.fabricante}|${r.revFDS}|${r.fechaFDS}`;
 
-  public verFDS(r: any) {
+  public irASga(r: BuscarInsumoResponseItem): void {
+    this.saveState();
+    this.router.navigate(['/panel/sga/detalle'], {
+      state: { materiaId: r.id, mostrarCompleto: false },
+    });
+  }
+
+  public verFDS(r: any): void {
     if (!r?.url) return;
-    // abre en nueva pestaña o hacé lo que corresponda
     window.open(r.url, '_blank', 'noopener');
   }
 
-  public agregar(r: BuscarInsumoResponseItem) {
-    console.log(r)
+  // =========================
+  //   Agregar insumo a usuario
+  // =========================
+
+  public agregar(r: BuscarInsumoResponseItem): void {
     Swal.fire({
       title: `Atención`,
       text: `Agregar el insumo ${r.nombre_producto}`,
       icon: 'question',
-      showCancelButton: false,
+      showCancelButton: true,
       confirmButtonColor: '#0d6efd',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
+      cancelButtonText: 'Cancelar',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
     }).then((result) => {
       if (result.isConfirmed) {
         if (this.currentUserId == null) return;
-        const body:AgregarInsumoAUsuario = {
+
+        const body: AgregarInsumoAUsuario = {
           materia: r.id.toString(),
           empresa: this.idEmpresa,
-          usuario: this.currentUserId.toString()
-        }
+          usuario: this.currentUserId.toString(),
+        };
+
         this.registros
           .agregarInsumoUsuario(body)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
-                    this.pageItems = this.pageItems.filter(x => x.id !== r.id);
+              // saco el insumo de la página
+              this.pageItems = this.pageItems.filter((x) => x.id !== r.id);
 
-          // (Opcional) si quedó vacía la página y hay páginas previas, retroceder una y recargar
-          if (this.pageItems.length === 0 && this.page > 1) {
-            this.page--;
-            this.buscar();
-          }
-                  Swal.fire({
-                        position: 'center',
-                        icon: 'success',
-                        title: '¡Listo!',
-                        text: 'Insumo agregado exitosamente',
-                        showConfirmButton: false,
-                        timer: 2500
-                      });
-             },
+              // si quedó vacía y hay páginas previas, retrocedo y recargo
+              if (this.pageItems.length === 0 && this.page > 1) {
+                this.page--;
+                this.buscar();
+              }
+
+              Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: '¡Listo!',
+                text: 'Insumo agregado exitosamente',
+                showConfirmButton: false,
+                timer: 2500,
+              });
+            },
             error: (e) =>
               Swal.fire({
-                      position: 'center',
-                      icon: 'error',
-                      title: '¡Ups!',
-                      text: `${e}`,
-                      showConfirmButton: false,
-                      timer: 2500
-                    }),
+                position: 'center',
+                icon: 'error',
+                title: '¡Ups!',
+                text: `${e}`,
+                showConfirmButton: false,
+                timer: 2500,
+              }),
           });
       }
-    })
-
-  }
-
-  public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.unsubscribe();
+    });
   }
 }

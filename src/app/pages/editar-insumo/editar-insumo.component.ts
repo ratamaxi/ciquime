@@ -38,7 +38,7 @@ export class EditarInsumoComponent implements OnInit {
     this.form = this.fb.group({
       nombreOriginal: [{ value: '', disabled: false }],
       fabricante: [{ value: '', disabled: false }],
-      nombreInterno: ['', [Validators.required, Validators.minLength(2)]],
+      nombreInterno: ['', [Validators.minLength(2)]],
       sector: [''],
       rnpq: [false],
       lote: [''],

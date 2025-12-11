@@ -81,7 +81,7 @@
                 Fecha.FDS
                 <span class="sort" [class.active]="sortKey==='fechaFDS'" [class.desc]="sortKey==='fechaFDS' && sortDir===-1"></span>
               </th>
-              <th class="col-accion">Acción</th>
+              <th class="col-accion">Acciones</th>
             </tr>
           </thead>
 
@@ -101,6 +101,7 @@
       [state]="{ materiaId: r.id, mostrarCompleto: false }"
       title="Ver FDS (SGA)"
       aria-label="Ver FDS (SGA)"
+      (click)="irASga(r)"
     >
      <svg class="icon-sga icon-sga" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
         <!-- rombo con más aire -->

@@ -5,10 +5,74 @@
         <h1>Gestión de Certificado de Calidad</h1>
       </div>
     </div>
-    <button type="button" class="hero__cta">
+    <button type="button" class="hero__cta" (click)="openExpiringModal()">
       Mostrar lista de certificados por vencer
     </button>
   </header>
+
+  <div class="modal-backdrop" *ngIf="showExpiringModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="certificados-por-vencer">
+      <header class="modal__header">
+        <h2 id="certificados-por-vencer">Certificados por vencer</h2>
+        <button type="button" class="modal__close" aria-label="Cerrar" (click)="closeExpiringModal()">×</button>
+      </header>
+
+      <div *ngIf="certificadosPorVencer.length; else noExpiring" class="modal__body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Certificado</th>
+                <th>Fecha Expiración</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of certificadosPorVencerPaginated; trackBy: trackByExpiring">
+                <td class="text-strong">{{ item.producto }}</td>
+                <td>{{ item.certificado }}</td>
+                <td>{{ item.fechaExpiracion | date: 'yyyy-MM-dd' }}</td>
+                <td>
+                  <span class="estado" [class.estado--vigente]="item.estado === 'vigente'"
+                    [class.estado--vencido]="item.estado === 'vencido'">
+                    {{ item.estadoTexto }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal__footer" *ngIf="certificadosPorVencer.length">
+          <div class="muted">
+            Mostrando
+            <b>{{ expiringShowingFrom }}</b>
+            -
+            <b>{{ expiringShowingTo }}</b>
+            de
+            <b>{{ certificadosPorVencer.length }}</b>
+            certificados
+          </div>
+
+          <div class="pager">
+            <button type="button" class="btn" (click)="prevExpiringPage()" [disabled]="expiringPage === 1">
+              Anterior
+            </button>
+            <span class="pager__page">Página {{ expiringPage }} de {{ expiringTotalPages }}</span>
+            <button type="button" class="btn" (click)="nextExpiringPage()"
+              [disabled]="expiringPage >= expiringTotalPages">
+              Siguiente
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noExpiring>
+        <div class="modal__body empty">No hay certificados próximos a vencer.</div>
+      </ng-template>
+    </div>
+  </div>
 
   <div class="panel">
     <div class="panel__header">
@@ -59,12 +123,11 @@
         <table>
           <thead>
             <tr>
-              <th>Número Interno</th>
+              <th>Nombre Interno</th>
               <th>Producto</th>
               <th>Fabricante</th>
-              <th>Fecha Expedición</th>
-              <th>Fecha Expiración</th>
-              <th>Estado</th>
+              <th>Fecha calidad 1</th>
+              <th>Fecha calidad 2</th>
               <th class="col-accion">Acción</th>
             </tr>
           </thead>
@@ -88,13 +151,6 @@
                   {{ registro.fechaExpiracion | date: 'dd/MM/yyyy' }}
                 </ng-container>
                 <ng-template #noExp>-</ng-template>
-              </td>
-
-              <td>
-                <span class="estado" [class.estado--vigente]="registro.estado === 'vigente'"
-                  [class.estado--vencido]="registro.estado === 'vencido'">
-                  {{ registro.estado === 'vigente' ? 'Vigente' : 'Vencido' }}
-                </span>
               </td>
 
               <td class="center">

@@ -41,7 +41,7 @@
         <label>Nombre interno</label>
         <input class="control" type="text" formControlName="nombreInterno" placeholder="Escriba el nombre/código interno">
         <div class="hint error" *ngIf="f['nombreInterno'].touched && f['nombreInterno'].invalid">
-          Ingresá un nombre interno válido.
+          Ingresá un nombre mayor a 2 caracteres.
         </div>
       </div>
     </div>

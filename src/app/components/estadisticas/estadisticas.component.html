@@ -36,19 +36,16 @@
   </div>
 
   <!-- Fila: Rechazados -->
-  <div class="row">
-    <div class="left">
-      <span class="count">{{ data.rechazados || 0 }}</span>
-      <span class="label">Rechazados</span>
-    </div>
-    <div class="right" *ngIf="tieneBarra('rechazados')">
-      <div class="bar track">
-        <div class="bar fill error" [style.width.%]="pct('rechazados')"></div>
-      </div>
-      <span class="pct">{{ pct('rechazados') }} %</span>
-    </div>
-    <div class="right right--noBar" *ngIf="!tieneBarra('rechazados')">
-      <span class="pct">{{ pct('rechazados') }}</span>
-    </div>
+<div class="row">
+  <div class="left">
+    <span class="count">{{ data.rechazados || 0 }}</span>
+    <span class="label">Rechazados</span>
   </div>
+  <div class="right">
+    <div class="bar track">
+      <div class="bar fill error" [style.width.%]="pct('rechazados')"></div>
+    </div>
+    <span class="pct">{{ pct('rechazados') }} %</span>
+  </div>
+</div>
 </div>

@@ -6,6 +6,7 @@ import { DescargasService } from 'src/app/services/descargas.service';
 import { SpinnerComponent } from '../spinner/spinner.component';
 import { environment } from 'src/environments/environment';
 import { CertificadoCalidad, CertificadoApi } from 'src/app/interfaces/actividades.interface';
+import { CertificadoPorVencer } from 'src/app/interfaces/certificados.interfaces';
 
 
 
@@ -28,6 +29,9 @@ export class CertificadosCalidadComponent implements OnInit {
   public page: number = 1;
   public pageSize: number = 10;
   public pageSizeOpts: number[] = [10, 25, 50, 100];
+  public showExpiringModal = false;
+  public expiringPage = 1;
+  public expiringPageSize = 10;
 
   private idUser: string = localStorage.getItem('idUser') ?? '';
 
@@ -190,5 +194,129 @@ export class CertificadosCalidadComponent implements OnInit {
 
   public trackByNumero(_index: number, item: CertificadoCalidad): string {
     return `${item.numeroInterno}|${item.producto}|${item.certificado}`;
+  }
+
+
+  // --------- Certificados por vencer ----------
+  public get certificadosPorVencer(): CertificadoPorVencer[] {
+    const hoy = this.startOfDay(new Date());
+    const msPorDia = 1000 * 60 * 60 * 24;
+
+    return this.registros.flatMap((registro, idx) => {
+      const baseId = this.trackByNumero(idx, registro);
+      const items = [
+        this.buildExpiringItem({
+          registro,
+          fecha: registro.fechacalidad,
+          certificado: registro.certificado,
+          itemId: `${baseId}|cert1`,
+          hoy,
+          msPorDia,
+        }),
+        this.buildExpiringItem({
+          registro,
+          fecha: registro.fechacalidad2,
+          certificado: registro.certificado2 || registro.certificado,
+          itemId: `${baseId}|cert2`,
+          hoy,
+          msPorDia,
+        }),
+      ];
+
+      return items.filter((item): item is CertificadoPorVencer => !!item);
+    });
+  }
+
+  public get certificadosPorVencerPaginated(): CertificadoPorVencer[] {
+    const start = (this.expiringPage - 1) * this.expiringPageSize;
+    const end = start + this.expiringPageSize;
+    return this.certificadosPorVencer.slice(start, end);
+  }
+
+  public get expiringTotalPages(): number {
+    return Math.max(1, Math.ceil(this.certificadosPorVencer.length / this.expiringPageSize));
+  }
+
+  public get expiringShowingFrom(): number {
+    if (!this.certificadosPorVencer.length) return 0;
+    return (this.expiringPage - 1) * this.expiringPageSize + 1;
+  }
+
+  public get expiringShowingTo(): number {
+    return Math.min(
+      this.certificadosPorVencer.length,
+      this.expiringPage * this.expiringPageSize,
+    );
+  }
+
+  public trackByExpiring(_index: number, item: CertificadoPorVencer): string {
+    return item.id;
+  }
+
+  public openExpiringModal(): void {
+    this.showExpiringModal = true;
+    this.expiringPage = 1;
+  }
+
+  public closeExpiringModal(): void {
+    this.showExpiringModal = false;
+  }
+
+  public prevExpiringPage(): void {
+    if (this.expiringPage > 1) {
+      this.expiringPage--;
+    }
+  }
+
+  public nextExpiringPage(): void {
+    if (this.expiringPage < this.expiringTotalPages) {
+      this.expiringPage++;
+    }
+  }
+
+  private buildExpiringItem({
+    registro,
+    fecha,
+    certificado,
+    itemId,
+    hoy,
+    msPorDia,
+  }: {
+    registro: CertificadoCalidad;
+    fecha: string | null;
+    certificado: string | null;
+    itemId: string;
+    hoy: Date;
+    msPorDia: number;
+  }): CertificadoPorVencer | null {
+    const fechaExpiracion = this.toDate(fecha);
+    if (!fechaExpiracion) return null;
+
+    const fechaNormalizada = this.startOfDay(fechaExpiracion);
+    const diffDias = Math.ceil((fechaNormalizada.getTime() - hoy.getTime()) / msPorDia);
+    if (diffDias > registro.aviso) return null;
+
+    const certificadoLabel = certificado?.trim() || '-';
+
+    return {
+      id: itemId,
+      producto: registro.producto,
+      certificado: certificadoLabel,
+      fechaExpiracion: fechaNormalizada.toISOString().slice(0, 10),
+      estado: diffDias < 0 ? 'vencido' : 'vigente',
+      estadoTexto: diffDias < 0 ? 'Vencido' : `Vence en ${diffDias} días`,
+    } as CertificadoPorVencer;
+  }
+
+  private startOfDay(date: Date): Date {
+    const clone = new Date(date);
+    clone.setHours(0, 0, 0, 0);
+    return clone;
+  }
+
+  private toDate(value: string | null): Date | null {
+    if (!value) return null;
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? null : d;
   }
 }
