@@ -11,6 +11,7 @@ export interface CertificadoApi {
   producto: string;
   materia_id:number;
   extraname: string | null;
+  fabricante: string;
   nombre_calidoc: string | null;
   nombre_calidoc2: string | null;
   fechacalidad: string;

@@ -31,6 +31,7 @@ export interface InsumoDescarga {
 
 export interface SgaPeligroApi {
   ok: boolean;
+  id_encrypt?: string;
   data: {
     header: {
       nombre_producto: string;

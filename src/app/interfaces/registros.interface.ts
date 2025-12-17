@@ -5,11 +5,12 @@ export interface EstadisticasInsumosData {
 }
 
 export interface BuscarInsumoQuery {
-  insumo?: string;
+insumo?: string;
   fabricante?: string;
   limit?: number;
   offset?: number;
-  empid?: number;
+  sortKey?: 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
+  sortDir?: 'asc' | 'desc';
 }
 
 export interface BuscarInsumoResponseItem {
@@ -132,3 +133,11 @@ export interface EstadisticasInsumosData {
 }
 
 export type Clave = keyof EstadisticasInsumosData;
+
+export interface IpelResponse {
+  ok: boolean;
+  rango_p: number | null;
+  descripcion_p: string | null;
+  src: string;
+  frases: string[];
+}

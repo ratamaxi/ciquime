@@ -1,25 +1,33 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { BuscarInsumoUI, BuscarInsumoResponseItem } from 'src/app/interfaces/registros.interface';
+import Swal from 'sweetalert2';
+
+import {
+  BuscarInsumoUI,
+  BuscarInsumoResponseItem,
+  BuscarInsumoQuery,
+} from 'src/app/interfaces/registros.interface';
+
 import { RegistrosService } from 'src/app/services/registros.service';
 import { UsuarioService } from 'src/app/services/usuario.service';
-import Swal from 'sweetalert2';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DescargasService } from 'src/app/services/descargas.service';
-import { RouterModule } from '@angular/router';
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 
 type SortKey = 'producto' | 'fabricante' | 'revFDS' | 'fechaFDS' | 'empid';
+
 @Component({
   selector: 'app-sga',
+  standalone: true,
   templateUrl: './sga.component.html',
   styleUrls: ['./sga.component.scss'],
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, SpinnerComponent]
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule, SpinnerComponent],
 })
-export class SgaComponent  implements OnInit, OnDestroy {
-  private destroy$: Subject<void> = new Subject();
+export class SgaComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   // filtros
   filtroNombre = '';
   filtroFabricante = '';
@@ -29,7 +37,7 @@ export class SgaComponent  implements OnInit, OnDestroy {
   error: string | null = null;
 
   // resultados + paginación
-  pageItems: any[] = [];
+  pageItems: BuscarInsumoUI[] = [];
   pageSize = 10;
   page = 1;
 
@@ -44,50 +52,68 @@ export class SgaComponent  implements OnInit, OnDestroy {
     private registros: RegistrosService,
     private users: UsuarioService,
     private descargas: DescargasService
+  ) {}
 
-  ) { }
-
-  public ngOnInit(): void {
-    // Espero el userId y disparo primera carga
-    this.users.userId$.subscribe((id) => {
-      this.currentUserId = id;
-      this.page = 1;
-      this.buscar();
-    });
+  ngOnInit(): void {
+    this.users.userId$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((id) => {
+        this.currentUserId = id;
+        this.page = 1;
+        this.buscar(true);
+      });
   }
 
-  // --- Acciones UI ---
-  public buscar(): void {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ======================
+  // Búsqueda / orden / paginación
+  // ======================
+
+  public buscar(resetPage = false): void {
     if (!this.currentUserId) return;
+
+    if (resetPage) {
+      this.page = 1;
+    }
+
     this.loading = true;
     this.error = null;
 
     const offset = (this.page - 1) * this.pageSize;
 
-    this.registros.buscarInsumosSga(this.currentUserId, {
+    const query: BuscarInsumoQuery = {
       insumo: this.filtroNombre.trim(),
       fabricante: this.filtroFabricante.trim(),
       limit: this.pageSize,
-      offset
-    }).subscribe({
-      next: (items: any) => {
-        this.pageItems = items ?? [];
-        this.applySort();
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar los insumos.';
-        this.pageItems = [];
-        this.loading = false;
-      }
-    });
+      offset,
+      sortKey: this.sortKey,
+      sortDir: this.sortDir === 1 ? 'asc' : 'desc',
+    };
+
+    this.registros
+      .buscarInsumosSga(this.currentUserId, query)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (items: BuscarInsumoUI[]) => {
+          this.pageItems = items ?? [];
+          this.loading = false;
+        },
+        error: () => {
+          this.error = 'No se pudieron cargar los insumos.';
+          this.pageItems = [];
+          this.loading = false;
+        },
+      });
   }
 
   public limpiar(): void {
     this.filtroNombre = '';
     this.filtroFabricante = '';
-    this.page = 1;
-    this.buscar();
+    this.buscar(true);
   }
 
   public sortBy(key: SortKey): void {
@@ -97,7 +123,8 @@ export class SgaComponent  implements OnInit, OnDestroy {
       this.sortKey = key;
       this.sortDir = 1;
     }
-    this.applySort();
+
+    this.buscar(true); // recarga con nuevo ORDER BY
   }
 
   public prev(): void {
@@ -108,34 +135,10 @@ export class SgaComponent  implements OnInit, OnDestroy {
   }
 
   public next(): void {
-    // si la página vino “llena”, asumo que hay otra página
     if (this.pageItems.length === this.pageSize && !this.loading) {
       this.page++;
       this.buscar();
     }
-  }
-
-  private applySort(): void {
-    const key = this.sortKey;
-    const dir = this.sortDir;
-
-    this.pageItems = [...this.pageItems].sort((a, b) => {
-      let va: any = a[key];
-      let vb: any = b[key];
-
-      if (key === 'fechaFDS') {
-        // ordenar por fecha real
-        const da = va ? new Date(va).getTime() : 0;
-        const db = vb ? new Date(vb).getTime() : 0;
-        return (da - db) * dir;
-      }
-
-      va = (va ?? '').toString().toLowerCase();
-      vb = (vb ?? '').toString().toLowerCase();
-      if (va < vb) return -1 * dir;
-      if (va > vb) return 1 * dir;
-      return 0;
-    });
   }
 
   public get showingFrom(): number {
@@ -149,49 +152,47 @@ export class SgaComponent  implements OnInit, OnDestroy {
   public trackByRow = (_: number, r: BuscarInsumoUI) =>
     `${r.producto}|${r.fabricante}|${r.revFDS}|${r.fechaFDS}`;
 
-  public agregar(r: BuscarInsumoResponseItem) {
-    console.log(r)
+  // ======================
+  // Agregar insumo
+  // ======================
+
+  public agregar(r: BuscarInsumoResponseItem): void {
     Swal.fire({
-      title: `Atención`,
+      title: 'Atención',
       text: `Agregar el insumo ${r.nombre_producto}`,
       icon: 'question',
       showCancelButton: false,
       confirmButtonColor: '#0d6efd',
-      confirmButtonText: 'Aceptar'
+      confirmButtonText: 'Aceptar',
     }).then((result) => {
       if (result.isConfirmed) {
         if (this.currentUserId == null) return;
+
         this.registros
           .addInsumos(this.currentUserId, r.empid, r.matid)
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
-                  Swal.fire({
-                        position: 'center',
-                        icon: 'success',
-                        title: '¡Listo!',
-                        text: 'Insumo agregado exitosamente',
-                        showConfirmButton: false,
-                        timer: 2500
-                      });
-             },
+              Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: '¡Listo!',
+                text: 'Insumo agregado exitosamente',
+                showConfirmButton: false,
+                timer: 2500,
+              });
+            },
             error: (e) =>
               Swal.fire({
-                      position: 'center',
-                      icon: 'error',
-                      title: '¡Ups!',
-                      text: `${e}`,
-                      showConfirmButton: false,
-                      timer: 2500
-                    }),
+                position: 'center',
+                icon: 'error',
+                title: '¡Ups!',
+                text: `${e}`,
+                showConfirmButton: false,
+                timer: 2500,
+              }),
           });
       }
-    })
-
-  }
-
-  public ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.unsubscribe();
+    });
   }
 }

@@ -31,8 +31,22 @@ export class VerInsumoComponent implements OnInit, OnDestroy {
   public sortKey: keyof Insumo | 'fechaFds' = 'producto';
   public sortDir: 1 | -1 = 1;
 
-  // Mock de insumos (meté los reales cuando tengas API)
+  // Datos
   private all: Insumo[] = [];
+
+  // ===========================
+  // Helper de encoding
+  // ===========================
+  private fixEncoding(value: any): string {
+    if (value == null) return '';
+    const s = String(value);
+    try {
+      // interpreta como latin1 y re-decódigo a UTF-8
+      return decodeURIComponent(escape(s));
+    } catch {
+      return s;
+    }
+  }
 
   // Derivados
   get filtered(): Insumo[] {
@@ -66,7 +80,6 @@ export class VerInsumoComponent implements OnInit, OnDestroy {
   ) { }
 
   public ngOnInit(): void {
-    // Espero el userId y disparo primera carga
     this.users.userId$.subscribe((id) => {
       this.currentUserId = id;
       this.page = 1;
@@ -74,19 +87,35 @@ export class VerInsumoComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ===========================
+  // Carga de datos
+  // ===========================
   private fetchData() {
     if (!this.currentUserId) return;
-    this.registros.getInsumosParaEditar(this.activeTab, this.currentUserId).subscribe({
-      next: (rows: Insumo[]) => {
-        this.all = [];
-        this.all = rows;
-        this.page = 1;
-      },
-      error: (err) => {
-        console.error(err);
-      },
-      complete: () => { }
-    });
+
+    this.registros
+      .getInsumosParaEditar(this.activeTab, this.currentUserId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rows: Insumo[]) => {
+          // acá “arreglamos” los textos que vienen rotos
+          this.all = rows.map(r => ({
+            ...r,
+            producto: this.fixEncoding(r.producto),
+            fabricante: this.fixEncoding(r.fabricante),
+            nombreInterno: r.nombreInterno
+              ? this.fixEncoding(r.nombreInterno)
+              : r.nombreInterno,
+            codigoAprobacion: r.codigoAprobacion
+              ? this.fixEncoding(r.codigoAprobacion)
+              : r.codigoAprobacion,
+          }));
+          this.page = 1;
+        },
+        error: (err) => {
+          console.error(err);
+        }
+      });
   }
 
   public setTab(tab: Estado) {
@@ -113,7 +142,6 @@ export class VerInsumoComponent implements OnInit, OnDestroy {
   }
 
   // ====== Acciones con SweetAlert2 ======
-
   async editar(i: Insumo) {
     await Swal.fire({
       icon: 'info',
@@ -181,25 +209,27 @@ export class VerInsumoComponent implements OnInit, OnDestroy {
         matempresa: i.id,
         empresa_id: this.empresaId,
         usuario_id: this.currentUserId,
-      }
-      if (this.currentUserId) this.registros.eliminarInsumo(body)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Eliminado',
-              text: `"${i.producto}" fue eliminado.`
-            });
-          },
-          error: () => {
+      };
+      if (this.currentUserId) {
+        this.registros.eliminarInsumo(body)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: () => {
               Swal.fire({
-              icon: 'error',
-              title: 'Ups!',
-              text: `No se pudo contretar la tarea`
-            });
-          }
-        })
+                icon: 'success',
+                title: 'Eliminado',
+                text: `"${i.producto}" fue eliminado.`
+              });
+            },
+            error: () => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Ups!',
+                text: `No se pudo concretar la tarea`
+              });
+            }
+          });
+      }
     }
   }
 

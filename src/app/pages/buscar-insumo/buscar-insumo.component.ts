@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
 import {
   AgregarInsumoAUsuario,
@@ -30,21 +30,21 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
   private readonly STORAGE_KEY = 'buscarInsumoState';
 
   // filtros
-  filtroNombre = '';
-  filtroFabricante = '';
+  public filtroNombre = '';
+  public filtroFabricante = '';
 
   // estado
-  loading = false;
-  error: string | null = null;
+  public loading = false;
+  public error: string | null = null;
 
   // resultados + paginación
-  pageItems: any[] = [];
-  pageSize = 10;
-  page = 1;
+  public pageItems: BuscarInsumoUI[] = [];
+  public pageSize = 10;
+  public page = 1;
 
   // orden
-  sortKey: SortKey = 'producto';
-  sortDir: 1 | -1 = 1; // 1 asc, -1 desc
+  public sortKey: SortKey = 'producto';
+  public sortDir: 1 | -1 = 1; // 1 asc, -1 desc
 
   // user
   private currentUserId: number | null = null;
@@ -56,18 +56,20 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
   ) {}
 
   public ngOnInit(): void {
-    this.users.userId$.pipe(takeUntil(this.destroy$)).subscribe((id) => {
-      this.currentUserId = id;
+    this.users.userId$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((id) => {
+        this.currentUserId = id;
 
-      // 1) cargo el estado guardado (si existe)
-      this.loadState();
+        // 1) cargo el estado guardado (si existe)
+        this.loadState();
 
-      // 2) aseguro que siempre haya página válida
-      this.page = this.page || 1;
+        // 2) aseguro que siempre haya página válida
+        this.page = this.page || 1;
 
-      // 3) hago la búsqueda inicial con ese estado
-      this.buscar();
-    });
+        // 3) hago la búsqueda inicial con ese estado
+        this.buscar();
+      });
   }
 
   public ngOnDestroy(): void {
@@ -78,7 +80,6 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
   // =========================
   //   Estado en localStorage
   // =========================
-
   private loadState(): void {
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
@@ -111,25 +112,51 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
     }
   }
 
-  public buscar(): void {
+  // =========================
+  //     Búsqueda (2 APIs)
+  // =========================
+  public buscar(resetPage = false): void {
     if (!this.currentUserId) return;
+
+    if (resetPage) this.page = 1;
+
     this.loading = true;
     this.error = null;
     this.saveState();
+
     const offset = (this.page - 1) * this.pageSize;
 
-    this.registros
-      .buscarInsumosDisponibles(this.currentUserId, {
-        insumo: this.filtroNombre.trim(),
-        fabricante: this.filtroFabricante.trim(),
-        limit: this.pageSize,
-        offset,
-      })
+    const sortDirStr = this.sortDir === 1 ? 'asc' : 'desc';
+
+    const query = {
+      insumo: this.filtroNombre.trim(),
+      fabricante: this.filtroFabricante.trim(),
+      limit: this.pageSize,
+      offset,
+      sortKey: this.sortKey,
+      sortDir: sortDirStr,
+    } as const;
+
+    console.log(query)
+
+    // llamo a los dos endpoints en paralelo
+    forkJoin({
+      disponibles: this.registros.buscarInsumosDisponibles(this.currentUserId, query),
+      privados:    this.registros.buscarInsumosPrivados(this.currentUserId, query, this.idEmpresa),
+    })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (items: any) => {
-          this.pageItems = items ?? [];
+        next: ({ disponibles, privados }) => {
+          console.log(privados)
+          const list1 = disponibles ?? [];
+          const list2 = privados ?? [];
+
+          // los uno en una sola grilla
+          this.pageItems = [...list1, ...list2];
+
+          // si querés reforzar el orden en el front (global sobre ambos arrays)
           this.applySort();
+
           this.loading = false;
         },
         error: () => {
@@ -145,7 +172,7 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
     this.filtroFabricante = '';
     this.page = 1;
     this.saveState();
-    this.buscar();
+    this.buscar(true);
   }
 
   public sortBy(key: SortKey): void {
@@ -155,8 +182,9 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
       this.sortKey = key;
       this.sortDir = 1;
     }
-    this.applySort();
+    this.page = 1;
     this.saveState();
+    this.buscar(true);
   }
 
   public prev(): void {
@@ -184,7 +212,6 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
       let vb: any = b[key];
 
       if (key === 'fechaFDS') {
-        // ordenar por fecha real
         const da = va ? new Date(va).getTime() : 0;
         const db = vb ? new Date(vb).getTime() : 0;
         return (da - db) * dir;
@@ -221,10 +248,6 @@ export class BuscarInsumoComponent implements OnInit, OnDestroy {
     if (!r?.url) return;
     window.open(r.url, '_blank', 'noopener');
   }
-
-  // =========================
-  //   Agregar insumo a usuario
-  // =========================
 
   public agregar(r: BuscarInsumoResponseItem): void {
     Swal.fire({

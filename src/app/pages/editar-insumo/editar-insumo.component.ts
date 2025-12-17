@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { take } from 'rxjs';
-import { ApiInsumo, ApiProducto, ApiResp, EditarInsumoRequest, Estado, SectorInsumoResponse, SectorInsumoResponseData } from 'src/app/interfaces/registros.interface';
+import { catchError, forkJoin, of, take } from 'rxjs';
+import { ApiInsumo, ApiProducto, ApiResp, EditarInsumoRequest, Estado, IpelResponse, SectorInsumoResponse, SectorInsumoResponseData } from 'src/app/interfaces/registros.interface';
 import { FixUtf8Pipe } from 'src/app/pipe/string.pipe';
 import Swal from "sweetalert2";
 import { RegistrosService } from 'src/app/services/registros.service';
@@ -30,35 +30,59 @@ export class EditarInsumoComponent implements OnInit {
   private idUser: string = localStorage.getItem('idUser') ?? '';
   private materiaId: string = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private registros: RegistrosService,
-    private router: Router
-  ) {
-    this.form = this.fb.group({
-      nombreOriginal: [{ value: '', disabled: false }],
-      fabricante: [{ value: '', disabled: false }],
-      nombreInterno: ['', [Validators.minLength(2)]],
-      sector: [''],
-      rnpq: [false],
-      lote: [''],
-      presentacion: [''],
-      valoracionApi: [''],
-      notasUsuario: [''],
-      ipel: [1, [Validators.min(1), Validators.max(5)]],
-      codigoAprobacion: [''],
-      codigoConsejo: [''],
-      notasAdmin: [''],
-      estado: ['pendiente' as Estado, [Validators.required]],
-    });
-    this.registros.obtenerDataSectorInsumo(this.empresaId).pipe(take(1)).subscribe({
-      next: (resp: SectorInsumoResponse) => {
-        this.sectores = resp.data
-      },
-      error: () => this.sectores = []
-    });
-    this.materiaId = this.resolveMateriaId();
-  }
+constructor(
+  private fb: FormBuilder,
+  private registros: RegistrosService,
+  private router: Router
+) {
+  this.materiaId = this.resolveMateriaId();
+
+  // 2) Form: ipel arranca en 1, pero lo vamos a pisar con rango_p si viene
+  this.form = this.fb.group({
+    nombreOriginal: [{ value: '', disabled: false }],
+    fabricante: [{ value: '', disabled: false }],
+    nombreInterno: ['', [Validators.minLength(2)]],
+    sector: [''],
+    rnpq: [false],
+    lote: [''],
+    presentacion: [''],
+    valoracionApi: [''],
+    notasUsuario: [''],
+    ipel: [0, [Validators.min(1), Validators.max(5)]], // default
+    codigoAprobacion: [''],
+    codigoConsejo: [''],
+    notasAdmin: [''],
+    estado: ['pendiente' as Estado, [Validators.required]],
+  });
+
+  // 3) Dos requests en paralelo y un solo subscribe
+forkJoin({
+  sectoresResp: this.registros.obtenerDataSectorInsumo(this.empresaId).pipe(
+    catchError(() => of({ ok: false, data: [] } as SectorInsumoResponse))
+  ),
+  ipelResp: this.registros.obtenerIpel(this.materiaId).pipe(
+    catchError(() =>
+      of({
+        ok: false,
+        rango_p: null,
+        descripcion_p: null,
+        src: '../../static/imagenes/icons/iPel_off.png',
+        frases: [],
+      } as IpelResponse)
+    )
+  ),
+})
+  .pipe(take(1))
+  .subscribe(({ sectoresResp, ipelResp }) => {
+    this.sectores = sectoresResp.data ?? [];
+
+    const ipel = Number(ipelResp?.rango_p);
+    if (Number.isFinite(ipel) && ipel >= 1 && ipel <= 5) {
+      this.form.patchValue({ ipel });
+    }
+  });
+
+}
 
   ngOnInit() {
     if (!this.materiaId || !this.empresaId || !this.idUser) {

@@ -64,6 +64,7 @@ export class CertificadosCalidadComponent implements OnInit {
 
     this.descargasService.getCertificadosCalidad(this.idUser).subscribe({
       next: (resp) => {
+        console.log(resp)
         const data: CertificadoApi[] = resp?.data ?? [];
         this.registros = data.map(this.mapApiToUi);
         this.applyFilters();
@@ -84,7 +85,7 @@ export class CertificadosCalidadComponent implements OnInit {
     return {
       numeroInterno: r.extraname?.trim() || '--',
       producto: r.producto || '',
-      fabricante: '-',
+      fabricante: r.fabricante || '-',
       certificado: r.nombre_calidoc || '',
       certificado2: r.nombre_calidoc2 || '',
       materia_id: r.materia_id,

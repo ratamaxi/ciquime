@@ -20,7 +20,7 @@
 
         <!-- Peligros por SGA -->
         <ng-container *ngSwitchCase="'peligro'">
-          <app-tabla-peligro *ngIf="fichaPeligro as fp" [ficha]="fp">
+          <app-tabla-peligro *ngIf="fichaPeligro as fp" [ficha]="fp"   [materiaId]="materiaId">
           </app-tabla-peligro>
         </ng-container>
 

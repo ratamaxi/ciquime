@@ -40,36 +40,97 @@ export class RegistrosService {
       );
   }
 
-  public buscarInsumosDisponibles(
+public buscarInsumosDisponibles(
+  usuarioId: number,
+  opts: BuscarInsumoQuery
+): Observable<BuscarInsumoUI[]> {
+
+  const params = new HttpParams({
+    fromObject: {
+      insumo: (opts.insumo ?? '').trim(),
+      fabricante: (opts.fabricante ?? '').trim(),
+      limit: String(opts.limit ?? 10),
+      offset: String(opts.offset ?? 0),
+      sortKey: opts.sortKey ?? 'producto',
+      sortDir: opts.sortDir ?? 'asc',
+    },
+  });
+
+  return this.http
+    .get<BuscarInsumoResponseItem[]>(
+      `${this.base_url}/registros/registros/${usuarioId}`,
+      { params }
+    )
+    .pipe(
+      wakeUpRetry(),
+      map(rows =>
+        (rows ?? []).map((r): BuscarInsumoUI => {
+          const fixLatin1 = (s: string) => {
+            try { return decodeURIComponent(escape(s)); } catch { return s; }
+          };
+
+          return {
+            // datos crudos
+            Nfile_name: fixLatin1(r.Nfile_name),
+            id: Number(r.id),
+            matid: Number(r.matid),
+            empid: Number(r.empid),
+            nombre_producto: r.nombre_producto,
+            fabricante: r.fabricante,
+            revisionFDS: r.revisionFDS,
+            fecha_insert: r.fecha_insert,
+
+            // alias para la vista
+            producto: r.nombre_producto,
+            revFDS: r.revisionFDS,
+            fechaFDS: r.fecha_insert,
+          };
+        })
+      ),
+      // OJO: el catchError también debe devolver BuscarInsumoUI[]
+      catchError(err => {
+        console.error('[buscarInsumosDisponibles] error', err);
+        return of<BuscarInsumoUI[]>([]);
+      })
+    );
+}
+
+public buscarInsumosPrivados(
     usuarioId: number,
-    opts: BuscarInsumoQuery
+    opts: BuscarInsumoQuery,
+    fabricanteId?: number | string   // 👈 acá recibimos el idFabricante
   ): Observable<BuscarInsumoUI[]> {
-    const params = new HttpParams({
-      fromObject: {
-        insumo: (opts.insumo ?? '').trim(),
-        fabricante: (opts.fabricante ?? '').trim(),
-        limit: String(opts.limit ?? 10),
-        offset: String(opts.offset ?? 0),
-        // si tu backend filtra por empid, descomentá:
-        // empid: opts.empid != null ? String(opts.empid) : ''
-      },
-    });
+
+    const paramsObj: any = {
+      insumo: (opts.insumo ?? '').trim(),
+      fabricante: (opts.fabricante ?? '').trim(),
+      limit: String(opts.limit ?? 10),
+      offset: String(opts.offset ?? 0),
+      sortKey: opts.sortKey ?? 'producto',
+      sortDir: opts.sortDir ?? 'asc',
+    };
+
+    // SOLO agregamos el idFabricante a la query si viene
+    if (fabricanteId != null) {
+      paramsObj.fabricanteId = String(fabricanteId);   // 👈 este es el que va al back
+    }
+
+    const params = new HttpParams({ fromObject: paramsObj });
 
     return this.http
       .get<BuscarInsumoResponseItem[]>(
-        `${this.base_url}/registros/registros/${usuarioId}`,
+        `${this.base_url}/registros/registros/privado/${usuarioId}/${fabricanteId}`,
         { params }
       )
       .pipe(
         wakeUpRetry(),
         map(rows =>
           (rows ?? []).map((r): BuscarInsumoUI => {
-            // Fix opcional de acentos rotos (ej: EspaÃ±ol)
             const fixLatin1 = (s: string) => {
               try { return decodeURIComponent(escape(s)); } catch { return s; }
             };
+
             return {
-              // datos “crudos” del back (con tipos correctos)
               Nfile_name: fixLatin1(r.Nfile_name),
               id: Number(r.id),
               matid: Number(r.matid),
@@ -78,9 +139,6 @@ export class RegistrosService {
               fabricante: r.fabricante,
               revisionFDS: r.revisionFDS,
               fecha_insert: r.fecha_insert,
-              fdsUrl: r.fdsUrl,
-
-              // alias requeridos para la vista
               producto: r.nombre_producto,
               revFDS: r.revisionFDS,
               fechaFDS: r.fecha_insert,
@@ -88,24 +146,27 @@ export class RegistrosService {
           })
         ),
         catchError(err => {
-          console.error('[buscarInsumosDisponibles] error', err);
+          console.error('[buscarInsumosPrivados] error', err);
           return of<BuscarInsumoUI[]>([]);
         })
       );
   }
 
-    public buscarInsumosSga(
+
+
+public buscarInsumosSga(
     usuarioId: number,
     opts: BuscarInsumoQuery
   ): Observable<BuscarInsumoUI[]> {
+
     const params = new HttpParams({
       fromObject: {
         insumo: (opts.insumo ?? '').trim(),
         fabricante: (opts.fabricante ?? '').trim(),
         limit: String(opts.limit ?? 10),
         offset: String(opts.offset ?? 0),
-        // si tu backend filtra por empid, descomentá:
-        // empid: opts.empid != null ? String(opts.empid) : ''
+        sortKey: opts.sortKey ?? 'producto',
+        sortDir: opts.sortDir ?? 'asc',
       },
     });
 
@@ -115,38 +176,37 @@ export class RegistrosService {
         { params }
       )
       .pipe(
-        wakeUpRetry(),
         map(rows =>
           (rows ?? []).map((r): BuscarInsumoUI => {
-            // Fix opcional de acentos rotos (ej: EspaÃ±ol)
             const fixLatin1 = (s: string) => {
               try { return decodeURIComponent(escape(s)); } catch { return s; }
             };
+
             return {
-              // datos “crudos” del back (con tipos correctos)
-              Nfile_name: fixLatin1(r.Nfile_name),
+              // crudos
+              Nfile_name: fixLatin1((r as any).Nfile_name ?? (r as any).fds),
               id: Number(r.id),
-              matid: Number(r.matid),
-              empid: Number(r.empid),
+              matid: Number((r as any).matid ?? (r as any).materia_id),
+              empid: Number((r as any).empid ?? 0),
               nombre_producto: r.nombre_producto,
               fabricante: r.fabricante,
               revisionFDS: r.revisionFDS,
-              fecha_insert: r.fecha_insert,
-              fdsUrl: r.fdsUrl,
+              fecha_insert: (r as any).fecha_insert ?? (r as any).fechaFDS,
 
-              // alias requeridos para la vista
+              // alias que usa la vista
               producto: r.nombre_producto,
               revFDS: r.revisionFDS,
-              fechaFDS: r.fecha_insert,
+              fechaFDS: (r as any).fechaFDS ?? (r as any).fecha_insert,
             };
           })
         ),
         catchError(err => {
-          console.error('[buscarInsumosDisponibles] error', err);
+          console.error('[buscarInsumosSga] error', err);
           return of<BuscarInsumoUI[]>([]);
         })
       );
   }
+
 
   // (ojo con el nombre, lo dejé como lo tenías)
   public instertarInsumoUsuario(userId: number): Observable<any> {
@@ -250,6 +310,11 @@ export class RegistrosService {
 
   public obtenerDataSectorInsumo(empresa_id: string): Observable<any> {
     let apiUrl = `${this.base_url}/registros/data/sector/insumo/${empresa_id}`;
+    return this.http.get(apiUrl).pipe(wakeUpRetry());
+  }
+
+  public obtenerIpel(idInsumo: string): Observable<any> {
+    let apiUrl = `${this.base_url}/registros/ipel/${idInsumo}`;
     return this.http.get(apiUrl).pipe(wakeUpRetry());
   }
 
