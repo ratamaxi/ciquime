@@ -115,6 +115,7 @@ export class EditarUsuarioComponent implements OnInit {
     this.usuarioService.updateUsuario(this.usuario.id, payload).subscribe({
       next: () => {
         this.saving = false;
+        this.usuarioService.refresh();
         Swal.fire({
           position: 'center',
           icon: 'success',

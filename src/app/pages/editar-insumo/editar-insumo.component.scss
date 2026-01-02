@@ -203,9 +203,20 @@ label { font-weight: 800; color: var(--text); }
 }
 
 .dot.active {
-  background: #2563eb;   /* blue-600 */
-  border-color: #2563eb;
+  color: #fff;
 }
+
+/* Colores por iPel */
+.dot.active.ipel-1 { background: #ef4444; border-color: #dc2626; } /* red */
+.dot.active.ipel-2 { background: #f97316; border-color: #ea580c; } /* orange */
+.dot.active.ipel-3 { background: #facc15; border-color: #eab308; } /* yellow */
+.dot.active.ipel-4 { background: #3b82f6; border-color: #2563eb; } /* blue */
+.dot.active.ipel-5 { background: #22c55e; border-color: #16a34a; } /* green */
+
+/* Texto en el dot */
+.dot.active span { color: #fff; }
+.dot.active.ipel-3 span { color: #111827; } /* mejor contraste en amarillo */
+
 
 .dot.active span {
   color: #fff;

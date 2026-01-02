@@ -6,14 +6,16 @@
       <span class="meta-label">iPel:</span>
       <div class="ipel-dots" [class.empty]="!ficha.ipel">
         <span
-          *ngFor="let n of ipelDots"
-          class="dot"
-          [class.active]="ficha.ipel === n"
-          [attr.aria-label]="'Nivel iPel ' + n"
-          role="img"
-        >
-          <span *ngIf="ficha.ipel === n">{{ n }}</span>
-        </span>
+  *ngFor="let n of ipelDots"
+  class="dot"
+  [class.active]="(ficha?.ipel ?? 0) === n"
+  [class]="getIpelClass(n)"
+  [attr.aria-label]="'Nivel iPel ' + n"
+  role="img"
+>
+  <span *ngIf="(ficha?.ipel ?? 0) === n">{{ n }}</span>
+</span>
+
         <span class="ipel-empty" *ngIf="!ficha.ipel">Sin dato</span>
       </div>
     </div>

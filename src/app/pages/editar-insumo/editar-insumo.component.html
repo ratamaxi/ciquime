@@ -130,14 +130,17 @@
           <label>iPel</label>
           <div class="ipel">
             <!-- Pintamos SOLO el dot del valor actual y mostramos el número ahí -->
-            <button type="button"
-                    *ngFor="let n of [1,2,3,4,5]"
-                    class="dot"
-                    [class.active]="f['ipel'].value === n"
-                    [disabled]="f['ipel'].disabled"
-                    aria-disabled="true">
-              <span *ngIf="f['ipel'].value === n">{{ n }}</span>
-            </button>
+            <button
+  type="button"
+  *ngFor="let n of [1,2,3,4,5]"
+  class="dot"
+  [class.active]="ipelValue === n"
+  [class]="getIpelClassForForm(n)"
+  [disabled]="f['ipel'].disabled"
+  aria-disabled="true"
+>
+  <span *ngIf="ipelValue === n">{{ n }}</span>
+</button>
           </div>
         </div>
 

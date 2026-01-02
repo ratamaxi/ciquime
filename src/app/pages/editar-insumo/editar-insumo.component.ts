@@ -81,7 +81,15 @@ forkJoin({
       this.form.patchValue({ ipel });
     }
   });
+}
 
+getIpelClassForForm(n: number): string {
+  const ipel = Number(this.f['ipel']?.value ?? 0);
+  return ipel === n ? `ipel-${n}` : '';
+}
+
+get ipelValue(): number {
+  return parseInt(String(this.f['ipel']?.value ?? 0), 10) || 0;
 }
 
   ngOnInit() {

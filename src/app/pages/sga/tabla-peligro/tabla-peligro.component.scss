@@ -279,3 +279,14 @@
   color: #6b7280;
 }
 
+.dot.active {
+  color: #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.dot.active.ipel-1 { background: #ef4444; border-color: #dc2626; }
+.dot.active.ipel-2 { background: #f97316; border-color: #ea580c; }
+.dot.active.ipel-3 { background: #facc15; border-color: #eab308; color: #111827; }
+.dot.active.ipel-4 { background: #3b82f6; border-color: #2563eb; }
+.dot.active.ipel-5 { background: #22c55e; border-color: #16a34a; }
+

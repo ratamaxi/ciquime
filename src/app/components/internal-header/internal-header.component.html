@@ -2,7 +2,7 @@
   <header class="topbar d-flex justify-content-between align-items-center px-3">
     <img src="./assets/img/logoBlanco.png" (click)="goHome()" class="logo" alt="Logo Mogensen Montenegro" />
     <div class="col d-flex justify-content-end align-items-center pointer pt-3">
-      <span class="user-data color-secundario">{{usuarioData?.nombre}}</span>
+      <span class="user-data color-secundario">{{usuarioData?.alias ? usuarioData?.alias : usuarioData?.nombre}}</span>
       <div class="border-user"></div>
       <span class="empresa-data">{{usuarioData?.razonSocial}}</span>
       <div routerLink="/panel/ayuda-video">

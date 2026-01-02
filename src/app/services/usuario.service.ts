@@ -8,6 +8,11 @@ import {
   tap,
   shareReplay,
   firstValueFrom,
+  Subject,
+  switchMap,
+  startWith,
+  catchError,
+  EMPTY,
 } from 'rxjs';
 import { EmpresaTercero } from '../interfaces/user.interface';
 import { wakeUpRetry } from '../utils/wake-up-retry';
@@ -18,6 +23,7 @@ export interface UserData {
   razonSocial?: string;
   nombre_usuario?: string;
   razon_social?: string;
+  alias?: string;
   id_empresa?: string;
   empresa?: { razonSocial?: string; nombre?: string };
 }
@@ -31,25 +37,37 @@ export interface UsuarioDetalle {
 
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
-
   private readonly baseUrl = environment.baseUrl;
 
   private userRequest$?: Observable<UserData>;
   private api = '/api/descargas';
 
-  constructor(private http: HttpClient) { }
+  // 🔥 NUEVO: señal para volver a cargar el usuario
+  private readonly userReload$ = new Subject<void>();
 
-  /**
-   * Devuelve un observable con los datos del usuario actual.
-   * - Hace UNA sola petición y la cachea (shareReplay(1)).
-   * - Guarda id en localStorage cuando llega.
-   */
-  public get user$(): Observable<UserData> {
+  // 🔥 NUEVO: stream único que se re-emite cuando llamás refresh()
+  private readonly userStream$: Observable<UserData>;
+
+  constructor(private http: HttpClient) {
+    this.userStream$ = this.userReload$.pipe(
+      startWith(void 0), // carga inicial
+      switchMap(() =>
+        this.fetchUser().pipe(
+          // si falla, no “mata” el stream (importante para no quedar colgado)
+          catchError(() => EMPTY)
+        )
+      )
+    );
+  }
+
+  // ✅ Tu lógica original, encapsulada
+  private fetchUser(): Observable<UserData> {
     if (!this.userRequest$) {
       const userName = localStorage.getItem('user') ?? '';
       this.userRequest$ = this.http
         .get<UserData>(`${this.baseUrl}/usuario/data/usuario/${userName}`)
         .pipe(
+          wakeUpRetry(),
           tap((u: UserData) => {
             localStorage.setItem('idUser', String(u.id_usuario));
             localStorage.setItem('id_empresa', String(u.id_empresa));
@@ -60,34 +78,33 @@ export class UsuarioService {
     return this.userRequest$;
   }
 
+  /** ✅ Ahora user$ SI se actualiza cuando llamás refresh() */
+  public get user$(): Observable<UserData> {
+    return this.userStream$;
+  }
+
   public clearUserCache(): void {
     this.userRequest$ = undefined;
   }
 
-  /** Acceso directo sólo al id (también cacheado). */
+  /** Acceso directo sólo al id */
   public get userId$(): Observable<number> {
     return this.user$.pipe(map((u) => u.id_usuario));
   }
 
-  /**
-   * Fuerza la carga del usuario (útil para APP_INITIALIZER).
-   * La app espera a que esto resuelva antes de bootstrappear.
-   */
   public prefetch(): Promise<void> {
     return firstValueFrom(this.user$)
       .then(() => undefined)
-      .catch(() => undefined); // no bloquear arranque si falla
+      .catch(() => undefined);
   }
 
   /**
-   * Permite refrescar el usuario (por ejemplo si cambia el username al loguearse).
-   * Si pasás un username, lo persiste y rehace la caché.
+   * ✅ Mantiene tu comportamiento, pero además notifica a todos los suscriptores
    */
   public refresh(username?: string): void {
     if (username) localStorage.setItem('user', username);
     this.userRequest$ = undefined; // invalida caché
-    // opcional: disparar el fetch de nuevo:
-    void this.prefetch();
+    this.userReload$.next();       // 🔥 fuerza re-emisión a quienes estén suscriptos
   }
 
   public getEmpresas(): Observable<EmpresaTercero[]> {
@@ -95,7 +112,6 @@ export class UsuarioService {
       .get<EmpresaTercero[]>(`${this.baseUrl}/usuario/empresas`)
       .pipe(
         wakeUpRetry(),
-        // Aseguro tipos y opcionalmente normalizo acentos
         map(rows => (rows ?? []).map(e => ({
           id: Number(e.id),
           noemp: e.noemp
@@ -118,7 +134,6 @@ export class UsuarioService {
       alias: data.alias ?? null,
     };
 
-    // Solo enviamos password si viene con contenido
     if (data.contrasena && data.contrasena.trim().length > 0) {
       body.password = data.contrasena.trim();
     }
@@ -127,6 +142,4 @@ export class UsuarioService {
       .put(`${this.baseUrl}/usuario/info/usuario/${id}`, body)
       .pipe(wakeUpRetry());
   }
-
-
 }

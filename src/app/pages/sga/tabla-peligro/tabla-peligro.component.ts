@@ -36,6 +36,11 @@ export class TablaPeligroComponent {
     return [1, 2, 3, 4, 5];
   }
 
+  public getIpelClass(n: number): string {
+  const ipel = Number(this.ficha?.ipel ?? 0);
+  return ipel === n ? `ipel-${n}` : '';
+}
+
   // NUEVO: generar PDF solo de la ficha
   async onPrint(): Promise<void> {
     const element = this.printSection?.nativeElement;
