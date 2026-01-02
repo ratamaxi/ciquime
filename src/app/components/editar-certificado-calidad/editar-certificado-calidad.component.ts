@@ -63,7 +63,7 @@ export class EditarCertificadoCalidadComponent implements OnInit {
 
     // Número Original: soporte crudo y UI
     this.numeroOriginal =
-      (st.extraname ??
+      (st.producto ??
         st.numeroInterno ??
         '--')?.toString();
 

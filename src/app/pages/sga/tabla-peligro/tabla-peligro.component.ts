@@ -32,6 +32,10 @@ export class TablaPeligroComponent {
     return code;
   }
 
+   get ipelDots(): number[] {
+    return [1, 2, 3, 4, 5];
+  }
+
   // NUEVO: generar PDF solo de la ficha
   async onPrint(): Promise<void> {
     const element = this.printSection?.nativeElement;

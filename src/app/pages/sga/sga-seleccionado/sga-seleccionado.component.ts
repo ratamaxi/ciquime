@@ -28,6 +28,8 @@ import {
   SgaFicha
 } from 'src/app/interfaces/descargas.interface';
 import { SpinnerComponent } from 'src/app/components/spinner/spinner.component';
+import { catchError, forkJoin, of } from 'rxjs';
+import { RegistrosService } from 'src/app/services/registros.service';
 
 type TabKey = 'peligro' | 'epp' | 'nfpa' | 'trat' | 'emerg' | 'alm';
 type SgaSeleccionadoNavState = {
@@ -81,8 +83,9 @@ export class SgaSeleccionadoComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private descargas: DescargasService
-  ) {}
+    private descargas: DescargasService,
+    private registros: RegistrosService
+  ) { }
 
   // ==================================================
   // Helper para arreglar texto con encoding roto
@@ -102,7 +105,7 @@ export class SgaSeleccionadoComponent implements OnInit {
   // Ciclo de vida
   // ==================================================
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     const state = this.getNavigationState<SgaSeleccionadoNavState>();
 
     const idValue = state?.materiaId;
@@ -123,7 +126,7 @@ export class SgaSeleccionadoComponent implements OnInit {
     this.loadActive();
   }
 
-  setActive(tab: TabKey): void {
+  public setActive(tab: TabKey): void {
     if (this.active === tab) return;
     this.active = tab;
     this.loadActive();
@@ -135,9 +138,21 @@ export class SgaSeleccionadoComponent implements OnInit {
 
     switch (this.active) {
       case 'peligro':
-        this.descargas.getSgaPeligros(this.materiaId).subscribe({
-          next: (resp) => {
-            this.fichaPeligro = this.mapPeligro(resp);
+        forkJoin({
+          sga: this.descargas.getSgaPeligros(this.materiaId),
+          ipel: this.registros.obtenerIpel(String(this.materiaId)).pipe(
+            catchError(() =>
+              of({
+                rango_p: null,
+                descripcion_p: null
+              })
+            )
+          )
+        }).subscribe({
+          next: ({ sga, ipel }) => {
+            const ipelValue = this.resolveIpel(sga, ipel);
+            const hazardReason = this.resolveHazardReason(sga, ipel);
+            this.fichaPeligro = this.mapPeligro(sga, ipelValue, hazardReason);
             this.loadingTab = false;
           },
           error: (e) => this.handleErr(e)
@@ -208,30 +223,30 @@ export class SgaSeleccionadoComponent implements OnInit {
   // ==================================================
 
   /** PELIGROS */
-  private mapPeligro(resp: any): SgaFicha {
+  private mapPeligro(resp: any, ipel: number | null, hazardReason: string): SgaFicha {
     const d = resp?.data ?? resp ?? {};
     const h = d.header ?? {};
 
     const hazardStatements: string[] = Array.isArray(d.frasesH)
       ? d.frasesH
-          .map(
-            (f: any) =>
-              this.fixEncoding(
-                (f?.espaniol ?? f?.frase ?? '').toString().trim()
-              )
-          )
-          .filter(Boolean)
+        .map(
+          (f: any) =>
+            this.fixEncoding(
+              (f?.espaniol ?? f?.frase ?? '').toString().trim()
+            )
+        )
+        .filter(Boolean)
       : [];
 
     const precautionaryStatements: string[] = Array.isArray(d.consejosPrudencia)
       ? d.consejosPrudencia
-          .map(
-            (p: any) =>
-              this.fixEncoding(
-                (p?.espaniol ?? p?.frase ?? '').toString().trim()
-              )
-          )
-          .filter(Boolean)
+        .map(
+          (p: any) =>
+            this.fixEncoding(
+              (p?.espaniol ?? p?.frase ?? '').toString().trim()
+            )
+        )
+        .filter(Boolean)
       : [];
 
     return {
@@ -239,6 +254,8 @@ export class SgaSeleccionadoComponent implements OnInit {
       supplier: this.fixEncoding(h.razonSocial ?? ''),
       displayVisibility: 'Publico',
       dataSource: '',
+      ipel,
+      hazardReason,
       pictograms: Array.isArray(d.pictogramas)
         ? d.pictogramas.filter(Boolean)
         : [],
@@ -405,5 +422,31 @@ export class SgaSeleccionadoComponent implements OnInit {
       return history.state as T;
     }
     return undefined;
+  }
+
+  private resolveIpel(resp: any, ipelResp: any): number | null {
+    const fromService = Number(ipelResp?.rango_p);
+    if (Number.isFinite(fromService) && fromService >= 1 && fromService <= 5) {
+      return fromService;
+    }
+
+    const fromHeader = Number(resp?.data?.header?.iPel ?? resp?.header?.iPel);
+    if (Number.isFinite(fromHeader) && fromHeader >= 1 && fromHeader <= 5) {
+      return fromHeader;
+    }
+
+    return null;
+  }
+
+  private resolveHazardReason(resp: any, ipelResp: any): string {
+    const reason =
+      ipelResp?.descripcion_p ??
+      resp?.data?.header?.iPelDescripcion ??
+      resp?.header?.iPelDescripcion;
+
+    const text = this.fixEncoding(reason ?? '').trim();
+    if (text) return text;
+
+    return 'No es Peligroso';
   }
 }

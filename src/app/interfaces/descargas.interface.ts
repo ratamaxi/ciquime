@@ -129,7 +129,9 @@ export interface SgaFicha {
   productName: string;
   supplier: string;
   displayVisibility: string;      // no viene del back (dejalo vacío)
-  dataSource: string;              // no viene del back (dejalo vacío)
+  dataSource: string;
+  ipel: number | null;             // rango 1-5 o null si no hay dato
+  hazardReason: string;            // texto descriptivo (mock si no llega)           // no viene del back (dejalo vacío)
   pictograms: string[];            // nombres UI: 'llama' | 'exclamacion' | 'peligro-salud'
   signalWord: string;
   hazardStatements: string[];      // textos en español

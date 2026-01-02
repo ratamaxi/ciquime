@@ -1,6 +1,28 @@
 <!-- tabla-peligro.component.html (o el componente donde está la ficha) -->
 
 <div class="ficha-card" #printSection>
+    <div class="ficha-meta" *ngIf="ficha">
+    <div class="meta-block">
+      <span class="meta-label">iPel:</span>
+      <div class="ipel-dots" [class.empty]="!ficha.ipel">
+        <span
+          *ngFor="let n of ipelDots"
+          class="dot"
+          [class.active]="ficha.ipel === n"
+          [attr.aria-label]="'Nivel iPel ' + n"
+          role="img"
+        >
+          <span *ngIf="ficha.ipel === n">{{ n }}</span>
+        </span>
+        <span class="ipel-empty" *ngIf="!ficha.ipel">Sin dato</span>
+      </div>
+    </div>
+
+    <div class="meta-block">
+      <span class="meta-label">Razón de Peligro:</span>
+      <span class="meta-value">{{ ficha.hazardReason }}</span>
+    </div>
+  </div>
   <div class="ficha-table">
     <!-- Nombre del producto -->
     <div class="row">
